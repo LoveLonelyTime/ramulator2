@@ -9,5 +9,6 @@ from .latency_throughput_trace import LatencyThroughputTrace
 from .load_store_trace import LoadStoreTrace
 from .read_write_trace import ReadWriteTrace
 from .simple_o3 import SimpleO3
+from .window_trace import WindowTrace
 
-__all__ = ['External', 'LatencyThroughputTrace', 'LoadStoreTrace', 'ReadWriteTrace', 'SimpleO3']
+__all__ = ['External', 'LatencyThroughputTrace', 'LoadStoreTrace', 'ReadWriteTrace', 'SimpleO3', 'WindowTrace']
