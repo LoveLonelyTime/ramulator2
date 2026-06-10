@@ -42,6 +42,17 @@ def addr_q(args: Namespace, b: int, h: int, c: int) -> int:
     offset = (b * args.head * args.dim + h * args.dim + c) * 2
     return args.q_base + offset
 
+
+def addr_param(args: Namespace, h: int, c: int, param_idx: int) -> int:
+    """
+    Compute byte address for Params[h][c][param_idx].
+    Layout: Params[head][channel][5], each element 16-bit (2 bytes).
+    param_idx: 0=dc_init, 1=scale_init, 2=alpha, 3=beta, 4=t
+    """
+    offset = (h * args.dim * 5 + c * 5 + param_idx) * 2
+    return args.param_base + offset
+
+
 def addr_k(args: Namespace, b: int, h: int, c: int, token_offset: int) -> int:
     """
     Compute byte address for K[b][h][c][token_offset].
@@ -55,14 +66,9 @@ def addr_k(args: Namespace, b: int, h: int, c: int, token_offset: int) -> int:
     byte_offset = token_offset // 2
     return args.k_base + channel_base + byte_offset
 
-def addr_zp(args: Namespace, b: int, h: int, token_offset: int) -> int:
-    """
-    Layout: ZP[batch][head][token], Channel-major, INT4 packed.
-    """
-    # Base for this (b, h) channel stripe
-    channel_base = (b * args.head + h) * (args.token_num * 4)
-    # Byte offset within the channel stripe
-    byte_offset = token_offset * 4
+def addr_zp(args: Namespace, b: int, h: int, c: int, token_offset: int, group_size: int = 32) -> int:
+    channel_base = (b * args.head * args.dim + h * args.dim + c) * (args.token_num // group_size * 4)
+    byte_offset = token_offset // group_size * 4
     return args.param_base + channel_base + byte_offset
 
 def burst_align(addr: int, burst_size: int) -> int:
@@ -73,6 +79,7 @@ def burst_align(addr: int, burst_size: int) -> int:
 # =============================================================================
 # Trace Generator
 # =============================================================================
+param_cache = set()
 def generate_tiled_trace(args: Namespace, tile: int, b: int, h: int, channel_start: int, channel_end: int) -> Generator[Tuple[int, int ,int, bool, str], None, None]:
     """
     Generate memory access trace for a single tiled PEs.
@@ -88,27 +95,13 @@ def generate_tiled_trace(args: Namespace, tile: int, b: int, h: int, channel_sta
 
     for token_start in range(0, args.token_num, args.pe_num):
         token_end = min(token_start + args.pe_num, args.token_num)
-
-        # Qserve ZP: shared across all channels of (b, h).
-        # DRAM only needs to read each ZP burst ONCE — but trace replayer's
-        # per-id queue means whoever yields it bears the serialization cost.
-        # Distribute ownership of ZP bursts across tiles by address-hash so no
-        # single tile becomes the bottleneck. Non-owner tiles get the data via
-        # on-chip broadcast and don't touch DRAM (skip in trace).
-        zp_start_addr = addr_zp(args, b, h, token_start)
-        zp_end_addr = addr_zp(args, b, h, token_end - 1)  # last element
-
-        first_burst = burst_align(zp_start_addr, bs)
-        last_burst = burst_align(zp_end_addr, bs)
-
-        addr = first_burst
-        while addr <= last_burst:
-            owner = (addr // bs) % args.tile_num
-            if owner == tile:
-                yield (tile, addr, 1, True, f"ZP b={b} h={h} tile={tile}")
-            addr += bs
-
         for c in range(channel_start, channel_end):
+            # KIVI
+            addr = burst_align(addr_zp(args, b, h, c, token_start), bs)
+            if addr not in cache:
+                cache.add(addr)
+                yield (tile, addr, 1, True, f"ZP b={b} h={h} c={c} tile={tile}")
+
             # --- 3. Load K[b][h][c][tok_start:tok_end] ---
             # INT4 packed: active_pes elements = active_pes/2 bytes, contiguous
             k_start_addr = addr_k(args, b, h, c, token_start)
@@ -156,6 +149,7 @@ def write_trace(args: Namespace, outfile: TextIO, annotated: bool = False) -> di
     counts = {}
 
     for id, addr, delay, issue, annotation in generate_trace(args):
+        region = annotation.split()[0]
         if args.annotated:
             outfile.write(f"{id} 0x{addr:08X} {delay} {1 if issue else 0} # {annotation}\n")
         else:

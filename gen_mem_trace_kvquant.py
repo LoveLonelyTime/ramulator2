@@ -170,6 +170,23 @@ def burst_align(addr: int, burst_size: int) -> int:
 # =============================================================================
 # Trace Generator
 # =============================================================================
+# All shared metadata (PARAM, K_OUTLIER_PTR, K_OUTLIER) is read from DRAM
+# only once and broadcast to tiles via the on-chip NoC. Two mechanisms:
+#   (1) global `param_cache` — yield each shared burst at most once
+#   (2) address-hash owner — that single yield is assigned to
+#       tile = (addr // burst_size) % tile_num, spreading shared bursts
+#       evenly across all 128 trace lanes (instead of piling on tile 0).
+#
+# Important: every tile must SCAN the address ranges of every shared region
+# (PARAM for all c in [0, dim), OUTLIER_PTR/DATA for all relevant t/nnz) so
+# that the address-hash owner is actually reached. For PARAM specifically,
+# the natural channel-split loop only visits this tile's c slice — that
+# slice may not contain any address whose owner is *this* tile. We therefore
+# scan ALL c addresses for the current head and let `owner == tile` filter.
+#
+# Critical: only mark `param_cache` *inside* the owner branch. Otherwise a
+# non-owner call could mark the address before the owner sees it, and the
+# burst would never be yielded by anyone.
 param_cache = set()
 def generate_tiled_trace(args: Namespace, tile: int, b: int, h: int, channel_start: int, channel_end: int) -> Generator[Tuple[int, int ,int, bool, str], None, None]:
     """
@@ -184,28 +201,38 @@ def generate_tiled_trace(args: Namespace, tile: int, b: int, h: int, channel_sta
             cache.add(q_addr)
             yield (tile, q_addr, 1, True, f"Q b={b} h={h} c={c}")
 
-        # --- 2. Load ZP, SC, LUT(16) ---
+    # --- 2. Load ZP, SC, LUT(16) for the entire head ---
+    # Scan ALL c (not just [channel_start, channel_end)) so each tile can
+    # claim PARAM bursts whose address-hash owner is this tile, regardless
+    # of which c the tile is computing.
+    for c in range(args.dim):
         for p_idx in range(18):
             p_addr = burst_align(addr_param(args, h, c, p_idx), bs)
             if p_addr not in param_cache:
-                param_cache.add(p_addr)
-                yield (tile, p_addr, 1, True, f"PARAM h={h} c={c} p={p_idx}")
+                owner = (p_addr // bs) % args.tile_num
+                if owner == tile:
+                    param_cache.add(p_addr)
+                    yield (tile, p_addr, 1, True, f"PARAM h={h} c={c} p={p_idx}")
 
     for token_start in range(0, args.token_num, args.pe_num):
         token_end = min(token_start + args.pe_num, args.token_num)
 
         # --- 3a. Load K outlier CSR pointers (start_rows) ---
+        # Truly shared across (h, c). Global cache + address-hash owner.
         for t in range(token_start, token_end):
             ptr_addr = burst_align(addr_outlier_ptr(args, b, t), bs)
             if ptr_addr not in param_cache:
-                param_cache.add(ptr_addr)
-                yield (tile, ptr_addr, 1, True,
-                       f"K_OUTLIER_PTR b={b} t={t}")
+                owner = (ptr_addr // bs) % args.tile_num
+                if owner == tile:
+                    param_cache.add(ptr_addr)
+                    yield (tile, ptr_addr, 1, True,
+                           f"K_OUTLIER_PTR b={b} t={t}")
 
         # # --- 3b. Load K outlier (col_idx, val) entries in the token range ---
         # # Sparse decoders read all entries spanning [start_rows[token_start],
         # # start_rows[token_end]) and filter by col_idx. We approximate the
         # # entry range using the expected count (outlier_ratio × hidden × tokens).
+        # Same sharing pattern as PTR: global cache + address-hash owner.
         nnz_lo = math.floor(token_start * args.head * args.dim * args.outlier_ratio)
         nnz_hi = math.ceil(token_end   * args.head * args.dim * args.outlier_ratio)
         if nnz_hi > nnz_lo:
@@ -216,9 +243,11 @@ def generate_tiled_trace(args: Namespace, tile: int, b: int, h: int, channel_sta
             addr = first_burst
             while addr <= last_burst:
                 if addr not in param_cache:
-                    param_cache.add(addr)
-                    yield (tile, addr, 1, True,
-                           f"K_OUTLIER b={b} t=[{token_start},{token_end})")
+                    owner = (addr // bs) % args.tile_num
+                    if owner == tile:
+                        param_cache.add(addr)
+                        yield (tile, addr, 1, True,
+                               f"K_OUTLIER b={b} t=[{token_start},{token_end})")
                 addr += bs
 
         for c in range(channel_start, channel_end):
