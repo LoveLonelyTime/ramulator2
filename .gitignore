@@ -27,3 +27,4 @@ sweep_log.txt
 *.out
 *.json
 trace.txt
+out.txt
