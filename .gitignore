@@ -25,6 +25,5 @@ sweep_log.txt
 .ipynb_checkpoints/tests/plots/
 
 *.out
-*.json
 trace.txt
 out.txt
