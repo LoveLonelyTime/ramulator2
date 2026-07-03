@@ -1,54 +1,67 @@
-"""Example Ramulator2 configuration and simulation script"""
+"""Ramulator2 sim script parameterized by MEM env var.
+
+Usage:  MEM=gddr6  python examples/example_config.py > result.txt
+        MEM=hbm3   python examples/example_config.py > result.txt
+
+Kept API-compatible with plot_speedup_grid.py; does not affect other users
+who invoke it without setting MEM (defaults to gddr6 like before).
+"""
+
+import os
+import json
 
 import ramulator
 
-# Configure the simulation frontend that sends memory requests
+MEM = os.environ.get("MEM", "gddr6").lower()
+
 frontend = ramulator.frontend.WindowTrace(
-    clock_ratio=10,
-    path="./examples/traces/trace.txt",
+    clock_ratio=10 if MEM == "gddr6" else 5,   # aim ~1 GHz frontend
+    path="./mem.txt",
     bank=128,
-    queue_len=32
+    queue_len=256,
 )
 
-# Instantiate the memory controller with the DRAM configuation
-# ramulator.dram.DDR4(org_preset="DDR4_8Gb_x8", timing_preset="DDR4_2400R", rank=1),
-ctrl = ramulator.controller.GenericDDR(
-    dram=ramulator.dram.GDDR6(org_preset="GDDR6_8Gb_x8", timing_preset="GDDR6_2000_1350mV_double"),
-    scheduler=ramulator.scheduler.FRFCFS(),
-    #scope="Rank",
-    read_buffer_size=32,
-    refresh_manager=ramulator.refresh_manager.AllBank(),
-    row_policy=ramulator.row_policy.Open(),
-    addr_mapper=ramulator.addr_mapper.RoBaRaCoCh(),
-)
-# Create a memory system with the controller
-mem = ramulator.memory_system.GenericDRAM(
-    clock_ratio=17,
-    controllers=[ctrl] * 32,
-    channel_mapper=ramulator.channel_mapper.CacheLineInterleave(),
-)
+if MEM == "gddr6":
+    ctrl = ramulator.controller.GenericDDR(
+        dram=ramulator.dram.GDDR6(
+            org_preset="GDDR6_8Gb_x8",
+            timing_preset="GDDR6_2000_1350mV_double",
+        ),
+        scheduler=ramulator.scheduler.FRFCFS(),
+        read_buffer_size=64,
+        refresh_manager=ramulator.refresh_manager.AllBank(),
+        row_policy=ramulator.row_policy.Open(),
+        addr_mapper=ramulator.addr_mapper.RoBaRaCoCh(),
+    )
+    mem = ramulator.memory_system.GenericDRAM(
+        clock_ratio=17,        # tCK 570 ps → 1.754 GHz mem, ~1.03 GHz fe
+        controllers=[ctrl] * 32,
+        channel_mapper=ramulator.channel_mapper.CacheLineInterleave(),
+    )
+elif MEM == "hbm3":
+    ctrl = ramulator.controller.GenericDDR(
+        dram=ramulator.dram.HBM3(
+            org_preset="HBM3_4Gb",
+            timing_preset="HBM3_6400Mbps",
+        ),
+        scheduler=ramulator.scheduler.FRFCFS(),
+        read_buffer_size=64,
+        refresh_manager=ramulator.refresh_manager.AllBank(),
+        row_policy=ramulator.row_policy.Open(),
+        addr_mapper=ramulator.addr_mapper.RoBaRaCoCh(),
+    )
+    # HBM3: 2 stacks × 16 pseudochannels = 32 controllers.
+    # 之前用 16 controller 时 utilization 只 ~30–70%（受 controller 数上限限制，
+    # 不是 row conflict），扩到 32 后 BW 直接跳到 900–1300 GB/s。
+    mem = ramulator.memory_system.GenericDRAM(
+        clock_ratio=8,         # tCK 625 ps → 1.6 GHz mem, exactly 1 GHz fe
+        controllers=[ctrl] * 32,
+        channel_mapper=ramulator.channel_mapper.CacheLineInterleave(),
+    )
+else:
+    raise SystemExit(f"unknown MEM={MEM!r}, expected 'gddr6' or 'hbm3'")
 
-# Run the simulation
 sim = ramulator.Simulation(frontend, mem)
 sim.run()
 
-# sim.stats returns a nested Python dict of all simulation statistics
-stats = sim.stats
-
-# Guard here for `ramulator export`, which does not run the simulation 
-# but only exports the config for pure C++ Ramulator library
-# if stats:
-#     # Controller stats are under memory_system → controller
-#     ctrl_stats = stats["memory_system"]["controller"]
-
-#     print(f"Controller cycles:     {ctrl_stats['cycles']}")
-#     print(f"Avg read latency:      {ctrl_stats['avg_read_latency']:.1f} cycles")
-#     print(f"Read requests:         {ctrl_stats['num_read_reqs']}")
-#     print(f"Write requests:        {ctrl_stats['num_write_reqs']}")
-#     print(f"Row hits:              {ctrl_stats['row_hits']}")
-#     print(f"Row misses:            {ctrl_stats['row_misses']}")
-#     print(f"Row conflicts:         {ctrl_stats['row_conflicts']}")
-
-import sys
-import json
-print(json.dumps(stats, indent=2, ensure_ascii=False))
+print(json.dumps(sim.stats, indent=2, ensure_ascii=False))
