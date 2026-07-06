@@ -35,8 +35,13 @@ class WindowTrace : public IFrontEnd, public Implementation {
   std::vector<std::deque<std::pair<bool,size_t>*>> m_read_queue;
   std::vector<size_t> m_stats_wait;
   std::vector<size_t> m_stats_em;
+  std::vector<size_t> m_stats_full;
+  std::vector<float> m_stats_wait_ratio;
+  std::vector<float> m_stats_em_ratio;
+  std::vector<float> m_stats_full_ratio;
   size_t m_stats_cycle = 0;
   size_t m_issue = 0;
+  size_t m_epoch = 1;
 
  public:
   void init() override {
@@ -44,6 +49,7 @@ class WindowTrace : public IFrontEnd, public Implementation {
     RAMULATOR_PARSE_PARAM(m_trace_path, std::string, "path").required();
     RAMULATOR_PARSE_PARAM(m_bank, size_t, "bank").required();
     RAMULATOR_PARSE_PARAM(m_queue_len, size_t, "queue_len").required();
+    RAMULATOR_PARSE_PARAM(m_epoch, size_t, "epoch").required();
 
     for(size_t i = 0; i < m_bank; i++){
       m_read_queue.push_back(std::deque<std::pair<bool, size_t>*>());
@@ -51,7 +57,12 @@ class WindowTrace : public IFrontEnd, public Implementation {
       m_trace.push_back(std::vector<Trace>());
       m_stats_wait.push_back(0);
       m_stats_em.push_back(0);
+      m_stats_full.push_back(0);
     }
+
+    m_stats.add("bank_stall_wait", m_stats_wait_ratio);
+    m_stats.add("bank_stall_empty", m_stats_em_ratio);
+    m_stats.add("bank_full", m_stats_full_ratio);
 
     m_logger.info(fmt::format("Loading trace file {} ...", m_trace_path));
     init_trace(m_trace_path);
@@ -63,27 +74,33 @@ class WindowTrace : public IFrontEnd, public Implementation {
     for(size_t i = 0; i < m_bank; i++){
       if(m_read_queue[i].empty()){
         m_stats_em[i]++;
-      } else if (m_read_queue[i].front()->second > 1) {
+      } else if (!m_read_queue[i].front()->first) {
          m_stats_wait[i]++;
       }
-      if(!m_read_queue[i].empty() && m_read_queue[i].front()->first){
-        if(m_read_queue[i].front()->second <= 1) {
+      while(!m_read_queue[i].empty() && m_read_queue[i].front()->first) {
+        if (m_read_queue[i].front()->second == 0) { // 不消耗PE周期
           delete m_read_queue[i].front();
           m_read_queue[i].pop_front();
-        } else {
+          continue;
+        } else if (m_read_queue[i].front()->second == 1) { // 消耗PE 1周期
+          delete m_read_queue[i].front();
+          m_read_queue[i].pop_front();
+          break;
+        } else { // 等待
           m_read_queue[i].front()->second--;
+          break;
         }
       }
     }
-    // printf("start issued\n");
+
     for(size_t k = 0; k < m_bank; k++){
       // 每个周期从 m_rr_offset 开始，环形遍历所有 bank，
       // 避免低编号 bank 永远抢占有限的 send 队列名额。
       size_t i = (m_rr_offset + k) % m_bank;
-      if(m_trace[i].empty() || m_curr_trace_idx[i] >= m_trace[i].size()) {
+      if(m_trace[i].empty() || m_curr_trace_idx[i] >= m_trace[i].size() * m_epoch) {
         continue;
       }
-      const Trace& t = m_trace[i][m_curr_trace_idx[i]];
+      const Trace& t = m_trace[i][m_curr_trace_idx[i] % m_trace[i].size()];
       if (m_read_queue[i].size() < m_queue_len) {
         if(t.issue){
           std::pair<bool, size_t>* item = new std::pair<bool, size_t>;
@@ -95,7 +112,6 @@ class WindowTrace : public IFrontEnd, public Implementation {
           bool request_sent = m_memory_system->send(req);
           int channel_id = req.addr_vec[0];
           if (request_sent) {
-            // printf("issued: %ld, address: 0x%lx, channel_id: %d\n", i, t.addr, channel_id);
             m_read_queue[i].push_back(item);
             m_curr_trace_idx[i] = m_curr_trace_idx[i] + 1;
             m_trace_count++;
@@ -110,11 +126,12 @@ class WindowTrace : public IFrontEnd, public Implementation {
           m_curr_trace_idx[i] = m_curr_trace_idx[i] + 1;
           m_trace_count++;
         }
+      } else {
+        m_stats_full[i]++;
       }
     }
     // 每个 tick 让起始 bank 向前推进一格，实现公平轮转
     m_rr_offset = (m_rr_offset + 1) % m_bank;
-    // printf("end issued\n");
   };
 
  private:
@@ -177,13 +194,19 @@ class WindowTrace : public IFrontEnd, public Implementation {
   };
 
   bool is_finished() override {
-    bool finished = m_trace_count >= m_trace_length;
+    bool finished = true;
+    for (size_t i = 0; i < m_bank; i++){
+      if (!m_read_queue[i].empty()) finished = false;
+      if (m_curr_trace_idx[i] < m_trace[i].size() * m_epoch) finished = false;
+    }
     if(finished) {
-      printf("issue: %ld\n", m_issue);
       for (size_t i = 0; i < m_bank;i++){
         float wait = ((float)m_stats_wait[i]) / m_stats_cycle * 100;
         float em = ((float)m_stats_em[i]) / m_stats_cycle * 100;
-        printf("Bank: %ld, wait: %f, em: %f, total: %f\n", i, wait, em, wait + em);
+        float full = ((float)m_stats_full[i]) / m_stats_cycle * 100;
+        m_stats_wait_ratio.push_back(wait);
+        m_stats_em_ratio.push_back(em);
+        m_stats_full_ratio.push_back(full);
       }
     }
     return finished;

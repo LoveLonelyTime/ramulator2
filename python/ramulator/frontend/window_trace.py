@@ -16,3 +16,4 @@ class WindowTrace(Component):
     path = Param(str, required=True)
     bank = Param(int, required=True)
     queue_len = Param(int, required=True)
+    epoch = Param(int, required=True)

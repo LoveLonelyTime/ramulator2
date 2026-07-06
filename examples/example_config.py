@@ -19,6 +19,7 @@ frontend = ramulator.frontend.WindowTrace(
     path="./mem.txt",
     bank=128,
     queue_len=256,
+    epoch=1
 )
 
 if MEM == "gddr6":
@@ -28,7 +29,7 @@ if MEM == "gddr6":
             timing_preset="GDDR6_2000_1350mV_double",
         ),
         scheduler=ramulator.scheduler.FRFCFS(),
-        read_buffer_size=64,
+        read_buffer_size=256,
         refresh_manager=ramulator.refresh_manager.AllBank(),
         row_policy=ramulator.row_policy.Open(),
         addr_mapper=ramulator.addr_mapper.RoBaRaCoCh(),
@@ -45,7 +46,7 @@ elif MEM == "hbm3":
             timing_preset="HBM3_6400Mbps",
         ),
         scheduler=ramulator.scheduler.FRFCFS(),
-        read_buffer_size=64,
+        read_buffer_size=256,
         refresh_manager=ramulator.refresh_manager.AllBank(),
         row_policy=ramulator.row_policy.Open(),
         addr_mapper=ramulator.addr_mapper.RoBaRaCoCh(),
