@@ -33,6 +33,33 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import numpy as np
 
+import matplotlib.font_manager as fm
+
+font_path = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
+
+# 手动添加字体到管理器
+fm.fontManager.addfont(font_path)
+
+# 从文件创建 FontProperties 获取准确名称
+prop = fm.FontProperties(fname=font_path)
+font_name = prop.get_name()
+
+# 设置全局字体
+plt.rcParams['font.family'] = font_name
+
+def compute(groups, batch = 64, head = 32, dim = 128, context_length = 4096, metadata_per_group = 4, bytes_per_ele = 0.5):
+    quantized_sizes = []
+    metadata_sizes = []
+    for group in groups:
+        quantized_size = 2 * batch * head * dim * context_length * bytes_per_ele
+        metadata_size = 2 * batch * head * dim * context_length / group * metadata_per_group
+        total = quantized_size + metadata_size
+        quantized_sizes.append(quantized_size / total * 100)
+        metadata_sizes.append(metadata_size / total * 100)
+    return quantized_sizes, metadata_sizes
+
+
+
 ROOT = Path(__file__).resolve().parent
 MEM_TXT = ROOT / "mem.txt"
 CACHE_FILE = ROOT / "fig_ram_cache.json"
@@ -65,23 +92,23 @@ METHOD_LABELS = [m[0] for m in METHODS]
 PJ_PER_BIT = {"HBM2": 3.9, "GDDR5": 14.0}   # O'Connor MICRO'17
 MEMORIES = ["GDDR5", "HBM2"]                # left GDDR5, right HBM2
 
-DEFAULT_PJ_PER_FMA = 1.0
+DEFAULT_PJ_PER_FMA = 1.02
 PJ_PER_FMA_OVERRIDE = {
-    "ADKV":   1.5,
-    "AxCore": 0.1,
-    "Tender": 0.2,
+    "ADKV":   1.52, # TSMC 28NM 1GHz
+    "AxCore": 0.11,
+    "Tender": 0.26,
 }
 
 # ---- plotting ----
 REGION_ORDER = ["K", "Q", "ZPSC", "PARAM", "K_OUTLIER", "K_OUTLIER_PTR"]
 REGION_COLORS = {
-    "K":              "#2b5f9c",
-    "Q":              "#8fb3d9",
-    "ZPSC":           "#f4a261",
-    "PARAM":          "#c07050",
-    "K_OUTLIER":      "#e76f51",
-    "K_OUTLIER_PTR":  "#f4c095",
-    "Compute":        "#7ac74f",
+    "K":              "#4E79A7",
+    "Q":              "#5C86B3",
+    "ZPSC":           "#7EA6D8",
+    "PARAM":          "#7EA6D8",
+    "K_OUTLIER":      "#7EA6D8",
+    "K_OUTLIER_PTR":  "#7EA6D8",
+    "Compute":        "#CEE1EF",
 }
 
 
@@ -193,7 +220,7 @@ def plot(energy: dict, outpath: Path):
     sections: all methods at 4-bit on the left, all methods at 2-bit on the
     right, separated by a small gap. Methods repeat within each section.
     """
-    fig, axes = plt.subplots(1, len(MEMORIES), figsize=(12, 6), sharey=False)
+    fig, axes = plt.subplots(1, len(MEMORIES), figsize=(12, 4), sharey=False)
 
     # union of regions across all cells, in preferred order
     seen = set()
@@ -216,6 +243,9 @@ def plot(energy: dict, outpath: Path):
     def section_center(bi: int) -> float:
         base = bi * (n_methods + section_gap)
         return base + (n_methods - 1) / 2
+    
+    def fig_center() -> float:
+        return n_methods - 1 + section_gap / 2
 
     legend_added = False
 
@@ -235,7 +265,7 @@ def plot(energy: dict, outpath: Path):
                 sum(entries[bits]["KIVI"]["regions"].values())
                 + entries[bits]["KIVI"]["compute"]
             )
-            scale = 1.0 / kivi_total if kivi_total > 0 else 1.0
+            scale = 100 / kivi_total if kivi_total > 0 else 100
 
             bottoms = np.zeros(n_methods)
             for reg in regions_used:
@@ -247,7 +277,6 @@ def plot(energy: dict, outpath: Path):
                     continue
                 ax.bar(xs, heights, width=bar_w, bottom=bottoms,
                        color=REGION_COLORS.get(reg, "#aaaaaa"),
-                       edgecolor="black", linewidth=0.25,
                        label=reg if not legend_added else None)
                 bottoms += heights
 
@@ -256,7 +285,6 @@ def plot(energy: dict, outpath: Path):
             ])
             ax.bar(xs, heights, width=bar_w, bottom=bottoms,
                    color=REGION_COLORS["Compute"],
-                   edgecolor="black", linewidth=0.25,
                    label="Compute" if not legend_added else None)
 
             totals_norm[:, bi] = bottoms + heights
@@ -265,29 +293,24 @@ def plot(energy: dict, outpath: Path):
                 for m in METHOD_LABELS
             ])
 
-            for x, val in zip(xs, totals_norm[:, bi]):
-                ax.text(x, val, f"{val:.2f}",
-                        ha="center", va="bottom", fontsize=6, rotation=90)
+            # for x, val in zip(xs, totals_norm[:, bi]):
+            #     ax.text(x, val, f"{val:.2f}",
+            #             ha="center", va="bottom", fontsize=6, rotation=90)
 
         legend_added = True
 
-        y_top_est = max(1.0, totals_norm.max()) * 1.22
+        y_top_est = 100
 
         # section labels ("4-bit" / "2-bit") above each half
         for bi, bits in enumerate(BITS_LIST):
-            ax.text(section_center(bi), y_top_est * 0.99,
-                    f"{bits}-bit",
-                    ha="center", va="top", fontsize=11, fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.25", fc="white",
-                              ec="#666", lw=0.6, alpha=0.9))
+            ax.text(section_center(bi), 105,
+                    f"{bits}-Bit",
+                    ha="center", va="top", fontsize=11, fontweight="bold")
 
         # divider between the two sections
         divider_x = n_methods - 0.5 + section_gap / 2
         ax.axvline(divider_x, color="#888", linewidth=0.9,
                    linestyle="--", alpha=0.7)
-
-        # KIVI = 1.0 reference line
-        ax.axhline(1.0, color="gray", linewidth=0.6, linestyle=":", zorder=0)
 
         # title: report absolute KIVI energy per bit and ADKV reductions
         parts = []
@@ -297,31 +320,39 @@ def plot(energy: dict, outpath: Path):
             parts.append(
                 f"{bits}b KIVI={base/1e6:.1f}μJ, ADKV -{(base - adkv) / base * 100:.1f}%"
             )
-        title = (f"{mem}  ({PJ_PER_BIT[mem]} pJ/bit)   " + "   ".join(parts))
-        ax.set_title(title, fontsize=10)
+        # title = (f"{mem}  ({PJ_PER_BIT[mem]} pJ/bit)   " + "   ".join(parts))
+        # ax.set_title(title, fontsize=10)
+
+        ax.text(fig_center(), -20, f"{mem}",
+            ha="center", va="top",
+            fontsize=11, fontweight="bold",
+        )
 
         ax.set_ylim(0, y_top_est)
 
         all_xs = np.concatenate([section_xs(bi) for bi in range(len(BITS_LIST))])
         ax.set_xticks(all_xs)
         ax.set_xticklabels(METHOD_LABELS * len(BITS_LIST),
-                           rotation=30, ha="right", fontsize=8)
+                           rotation=30, ha="right", fontsize=11)
         ax.set_xlim(-0.8, section_xs(len(BITS_LIST) - 1)[-1] + 0.8)
+        ax.tick_params(axis="y", labelsize=11)
 
-        ax.set_ylabel("Energy per token (normalized to KIVI)")
         ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
+        ax.spines['left'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+    
+    axes[0].set_ylabel("Energy Breakdown (%)", fontsize=11)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center",
-               ncol=len(labels) // 2, fontsize=9,
-               bbox_to_anchor=(0.5, 0.97))
+    # plt.figlegend(handles, labels,
+    #        loc='upper center',
+    #        bbox_to_anchor=(0.5, 1),
+    #        ncol=7,
+    #        frameon=False,
+    #        fontsize=11,
+    #        bbox_transform=fig.transFigure)
 
-    fig.suptitle(
-        f"Attention-decode energy breakdown  "
-        f"(batch={BATCH}, head={HEAD}, dim={DIM}, tokens={TOKEN_NUM})",
-        fontsize=12, y=1.01,
-    )
-    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    # fig.tight_layout()
     fig.savefig(outpath, dpi=180, bbox_inches="tight")
     print(f"saved {outpath}")
 
@@ -330,7 +361,7 @@ def plot(energy: dict, outpath: Path):
 def main():
     bytes_cache = collect_bytes()
     energy = build_energy(bytes_cache)
-    plot(energy, ROOT / "fig_ram.png")
+    plot(energy, ROOT / "fig_ram.pdf")
 
 
 if __name__ == "__main__":
