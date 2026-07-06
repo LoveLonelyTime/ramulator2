@@ -19,6 +19,23 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+import matplotlib.font_manager as fm
+
+font_path = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
+
+# 手动添加字体到管理器
+fm.fontManager.addfont(font_path)
+
+# 从文件创建 FontProperties 获取准确名称
+prop = fm.FontProperties(fname=font_path)
+font_name = prop.get_name()
+
+# 设置全局字体
+plt.rcParams['font.family'] = font_name
+
+
+
 ROOT       = Path(__file__).resolve().parent
 MEM_TXT    = ROOT / "mem.txt"
 RESULT_TXT = ROOT / "result.txt"
@@ -139,11 +156,11 @@ def main():
     # 每 model block 内部按 4bit / 2bit 两小组排列。
     fig, axes = plt.subplots(
         len(MEMORIES), 1,
-        figsize=(22, 8),
+        figsize=(24, 8),
         sharex=True,
     )
 
-    colors = {4: "#2b5f9c", 2: "#8fb3d9"}
+    colors = {4: "#4E79A7", 2: "#7EA6D8"}
     n_methods = len(METHOD_LABELS)
     bit_gap   = 0.8                          # 4bit / 2bit 两 section 之间的间隙
     model_gap = 1.2                          # 相邻 model 之间的间隙（除去竖线）
@@ -180,13 +197,16 @@ def main():
         y_max_row = 0
         for mi, m in enumerate(MODELS):
             model_label = m[0]
-            base_key = cache_key(mem, model_label, 4, BASELINE_METHOD)
-            baseline_cyc = cache[base_key]["cycles"]
+            base_key_4 = cache_key(mem, model_label, 4, BASELINE_METHOD)
+            base_key_2 = cache_key(mem, model_label, 2, BASELINE_METHOD)
+            baseline_cyc_4 = cache[base_key_4]["cycles"]
+            baseline_cyc_2 = cache[base_key_2]["cycles"]
 
             speedups = {b: [] for b in BITS}
             for method_label, _, _ in METHODS:
                 for bit in BITS:
                     entry = cache[cache_key(mem, model_label, bit, method_label)]
+                    baseline_cyc = baseline_cyc_4 if bit == 4 else baseline_cyc_2
                     speedups[bit].append(baseline_cyc / entry["cycles"])
 
             y_max_row = max(y_max_row, max(speedups[4] + speedups[2]))
@@ -195,16 +215,16 @@ def main():
                 xs = bit_xs(mi, bit)
                 bars = ax.bar(xs, speedups[bit],
                               width=width, color=colors[bit],
-                              edgecolor="black", linewidth=0.35,
+                            #   edgecolor="black", linewidth=0.35,
                               label=f"{bit}bit" if (mi == 0 and r == 0) else None)
                 for bar, s in zip(bars, speedups[bit]):
                     ax.text(bar.get_x() + bar.get_width() / 2,
                             s + 0.015,
                             f"{s:.2f}", ha="center", va="bottom",
-                            fontsize=6, rotation=90)
+                            fontsize=15, rotation=90, fontweight="bold")
 
         # y 上限（该行统一）
-        y_top = y_max_row * 1.30
+        y_top = 2.0
         ax.set_ylim(0, y_top)
 
         # model 之间的竖分隔线
@@ -214,30 +234,31 @@ def main():
 
         # 每个 model 顶部 title 标签
         for mi, m in enumerate(MODELS):
-            ax.text(model_center(mi), y_top * 0.97, m[0],
+            ax.text(model_center(mi), -0.6, m[0],
                     ha="center", va="top",
-                    fontsize=10, fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.2", fc="white",
-                              ec="#666666", lw=0.6, alpha=0.9))
+                    fontsize=20, fontweight="bold",
+                    )
+            # bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="#666666", lw=0.6, alpha=0.9)
 
         # 每个 model block 内 4bit / 2bit 小标签（低一点，避免和 model 名撞）
-        for mi in range(len(MODELS)):
-            base = mi * (model_w + model_gap)
-            ax.text(base + section_w / 2 - 0.5, y_top * 0.83, "4-bit",
-                    ha="center", va="top", fontsize=8, color="#2b5f9c")
-            ax.text(base + section_w + bit_gap + section_w / 2 - 0.5,
-                    y_top * 0.83, "2-bit",
-                    ha="center", va="top", fontsize=8, color="#4d7fbf")
+        if mem == "gddr6":
+            for mi in range(len(MODELS)):
+                base = mi * (model_w + model_gap)
+                ax.text(base + section_w / 2 - 0.5, 2.2, "4-Bit",
+                        ha="center", va="top", fontsize=20, fontweight="bold")
+                ax.text(base + section_w + bit_gap + section_w / 2 - 0.5,
+                        2.2, "2-Bit",
+                        ha="center", va="top", fontsize=20, fontweight="bold")
 
-        ax.axhline(1.0, color="gray", linewidth=0.6, linestyle="--", zorder=0)
-        ax.set_ylabel(f"{mem.upper()}\nSpeedup", fontsize=10)
-        ax.tick_params(axis="y", labelsize=8)
+        ax.axhline(1.0, color="gray", linewidth=0.6, linestyle="--", zorder=-1)
+        ax.set_ylabel(f"Speedup - {mem.upper()}", fontsize=20)
+        ax.tick_params(axis="y", labelsize=15)
         ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
 
         # 只在最后一行画 x tick 标签
         ax.set_xticks(all_x)
         if r == len(MEMORIES) - 1:
-            ax.set_xticklabels(all_labels, rotation=45, ha="right", fontsize=7)
+            ax.set_xticklabels(all_labels, rotation=45, ha="right", fontsize=13)
         else:
             ax.set_xticklabels([""] * len(all_x))
 
@@ -245,15 +266,15 @@ def main():
 
     # 全局 legend
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2,
-               fontsize=10, bbox_to_anchor=(0.5, 0.985))
+    # fig.legend(handles, labels, loc="upper center", ncol=2,
+    #            fontsize=11, bbox_to_anchor=(0.5, 0.985))
 
-    fig.suptitle("KV-cache quantization: speedup grid  (mem × model × bit)",
-                 fontsize=13, y=1.005)
+    # fig.suptitle("KV-cache quantization: speedup grid  (mem × model × bit)",
+    #              fontsize=13, y=1.005)
     plt.tight_layout(rect=(0, 0, 1, 0.955))
     # 减小两行之间的间距
     plt.subplots_adjust(hspace=0.06)
-    out = ROOT / "speedup_grid.png"
+    out = ROOT / "speedup_grid.pdf"
     plt.savefig(out, dpi=180, bbox_inches="tight")
     print(f"\nsaved {out}")
 
