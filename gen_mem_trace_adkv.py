@@ -34,7 +34,8 @@ def addr_param(args: Namespace, h: int, c: int, param_idx: int) -> int:
     Layout: Params[head][channel][5], each element 16-bit (2 bytes).
     param_idx: 0=dc_init, 1=scale_init, 2=alpha, 3=beta, 4=t
     """
-    offset = (h * args.dim * 5 + c * 5 + param_idx) * 2
+    align_num = 5
+    offset = (h * args.dim * align_num + c * align_num + param_idx) * 2
     return args.param_base + offset
 
 
@@ -76,13 +77,6 @@ def generate_tiled_trace(args: Namespace, tile: int, b: int, h: int, channel_sta
             cache.add(q_addr)
             # 产生实际请求，但不消耗PE
             yield (tile, q_addr, 0, True, f"Q b={b} h={h} c={c}")
-        
-        # --- 2. Load parameters ---
-        for p_idx in range(5):
-            p_addr = burst_align(addr_param(args, h, c, p_idx), bs)
-            if p_addr not in param_cache:
-                param_cache.add(p_addr)
-                yield (tile, p_addr, 0, True, f"PARAM h={h} c={c} p={p_idx}")
 
     for token_start in range(0, args.token_num, args.pe_num):
         token_end = min(token_start + args.pe_num, args.token_num)
@@ -116,6 +110,8 @@ def generate_trace(args: Namespace) -> Generator[Tuple[int, int, int, bool, str]
     channel_split = args.dim // args.tile_num
     round_offset = 0
     for b in range(args.batch):
+            # for i in range(0,128):
+            #     yield (i, 0, 128, True, f"Sync")
         for h in range(args.head):
             gens = [
                 generate_tiled_trace(
@@ -137,16 +133,37 @@ def generate_trace(args: Namespace) -> Generator[Tuple[int, int, int, bool, str]
                         active[tile_id] = False
                 round_offset = (round_offset + 1) % args.tile_num
 
+        # if b == args.batch - 1:
+        #     # --- 2. Load parameters --- (5 bursts per c, tile-local cache)
+        #     tile_id_tmp = 0
+        #     for h in range(args.head):
+        #         for c in range(args.dim):
+        #             for p_idx in range(5):
+        #                 p_addr = burst_align(addr_param(args, h, c, p_idx), args.burst_size)
+        #                 if p_addr not in param_cache:
+        #                     param_cache.add(p_addr)
+        #                     yield (tile_id_tmp, p_addr, 0, True, f"PARAM h={h} c={c} p={p_idx}")
+        #                     tile_id_tmp = (tile_id_tmp + 1) % args.tile_num
 # =============================================================================
 # Output Writers
 # =============================================================================
-def write_trace(args: Namespace, outfile: TextIO, annotated: bool = False) -> dict:
+def write_trace(args: Namespace, outfile: TextIO, annotated: bool = False,
+                dramsim3_file: Optional[TextIO] = None) -> dict:
     """
     Write trace to file and return statistics.
+
+    If dramsim3_file is given, also emit a DRAMSim3 TraceBasedCPU-format trace:
+        <addr_hex> READ <added_cycle>
+    The added_cycle uses per-tile accumulated `delay` as an arrival timestamp,
+    matching the pacing the Ramulator2 WindowTrace frontend applies per bank.
 
     Returns: dict with burst counts per region.
     """
     counts = {}
+    counts_id = {}
+
+    tile_time: dict = {}
+    dramsim3_events: List[Tuple[int, int]] = []  # (cycle, addr)
 
     for id, addr, delay, issue, annotation in generate_trace(args):
         region = annotation.split()[0]
@@ -155,12 +172,25 @@ def write_trace(args: Namespace, outfile: TextIO, annotated: bool = False) -> di
         else:
             outfile.write(f"{id} 0x{addr:08X} {delay} {1 if issue else 0}\n")
 
+        if dramsim3_file is not None:
+            t = tile_time.get(id, 0)
+            if issue:
+                dramsim3_events.append((t, addr))
+            tile_time[id] = t + delay
+
         # Count by region
         if issue:
             region = annotation.split()[0]
             counts[region] = counts.get(region, 0) + 1
+            counts_id[id] = counts_id.get(id, 0) + 1
+
+    if dramsim3_file is not None:
+        dramsim3_events.sort()
+        for cyc, addr in dramsim3_events:
+            dramsim3_file.write(f"0x{addr:x} READ {cyc}\n")
 
     total = sum(counts.values())
+    print(counts_id)
     return {
         "total_bursts": total,
         "total_bytes": total * args.burst_size,
@@ -235,6 +265,9 @@ def parse_args():
                          help="Include region annotations in trace")
     parser.add_argument("-o", "--output", type=str, default=None,
                          help="Output trace file (default: stdout)")
+    parser.add_argument("--dramsim3-out", type=str, default=None,
+                         help="Also emit a DRAMSim3 TraceBasedCPU-format trace "
+                              "(<addr_hex> READ <added_cycle>) to this path")
 
     return parser.parse_args()
 
@@ -246,7 +279,12 @@ def main():
     else:
         outfile = sys.stdout
 
-    stats = write_trace(args, outfile)
+    dramsim3_file = open(args.dramsim3_out, "w") if args.dramsim3_out else None
+
+    stats = write_trace(args, outfile, dramsim3_file=dramsim3_file)
+
+    if dramsim3_file is not None:
+        dramsim3_file.close()
 
     if args.output:
         outfile.close()

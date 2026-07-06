@@ -1,578 +1,578 @@
 {
-  "gddr6|Llama-2 7B|4|KIVI": {
-    "cycles": 56124,
-    "bw_GBps": 688.3285
-  },
-  "gddr6|Llama-2 7B|4|KIVI 128g": {
-    "cycles": 45520,
-    "bw_GBps": 727.4368750079999
-  },
-  "gddr6|Llama-2 7B|4|KVQuant": {
-    "cycles": 52386,
-    "bw_GBps": 697.8524218719999
-  },
-  "gddr6|Llama-2 7B|4|Atom": {
-    "cycles": 45115,
-    "bw_GBps": 733.9671249920001
-  },
-  "gddr6|Llama-2 7B|4|Qserve": {
-    "cycles": 43339,
-    "bw_GBps": 742.821062496
-  },
-  "gddr6|Llama-2 7B|4|ADKV": {
-    "cycles": 41620,
-    "bw_GBps": 753.127750016
-  },
-  "gddr6|Llama-2 7B|4|SKVQ": {
-    "cycles": 55805,
-    "bw_GBps": 692.263187488
-  },
-  "gddr6|Llama-2 7B|4|AxCore": {
-    "cycles": 48088,
-    "bw_GBps": 726.845249984
-  },
-  "gddr6|Llama-2 7B|4|Tender": {
-    "cycles": 43339,
-    "bw_GBps": 742.821062496
-  },
-  "gddr6|Llama-2 7B|2|KIVI": {
-    "cycles": 37851,
-    "bw_GBps": 631.816624992
-  },
-  "gddr6|Llama-2 7B|2|KIVI 128g": {
-    "cycles": 28365,
-    "bw_GBps": 648.548187488
-  },
-  "gddr6|Llama-2 7B|2|KVQuant": {
-    "cycles": 34097,
-    "bw_GBps": 640.55028124
-  },
-  "gddr6|Llama-2 7B|2|Atom": {
-    "cycles": 28316,
-    "bw_GBps": 649.6705
-  },
-  "gddr6|Llama-2 7B|2|Qserve": {
-    "cycles": 26255,
-    "bw_GBps": 665.635750016
-  },
-  "gddr6|Llama-2 7B|2|ADKV": {
-    "cycles": 24729,
-    "bw_GBps": 672.4219375040001
-  },
-  "gddr6|Llama-2 7B|2|SKVQ": {
-    "cycles": 39327,
-    "bw_GBps": 608.103624992
-  },
-  "gddr6|Llama-2 7B|2|AxCore": {
-    "cycles": 32278,
-    "bw_GBps": 626.9185624959999
-  },
-  "gddr6|Llama-2 7B|2|Tender": {
-    "cycles": 26255,
-    "bw_GBps": 665.635750016
-  },
-  "gddr6|Llama-2 13B|4|KIVI": {
-    "cycles": 68070,
-    "bw_GBps": 709.412124992
-  },
-  "gddr6|Llama-2 13B|4|KIVI 128g": {
-    "cycles": 55701,
-    "bw_GBps": 743.0954375040001
-  },
-  "gddr6|Llama-2 13B|4|KVQuant": {
-    "cycles": 66732,
-    "bw_GBps": 684.568736328
-  },
-  "gddr6|Llama-2 13B|4|Atom": {
-    "cycles": 55405,
-    "bw_GBps": 747.0653750079999
-  },
-  "gddr6|Llama-2 13B|4|Qserve": {
-    "cycles": 54327,
-    "bw_GBps": 740.7256874880001
-  },
-  "gddr6|Llama-2 13B|4|ADKV": {
-    "cycles": 52556,
-    "bw_GBps": 745.518562496
-  },
-  "gddr6|Llama-2 13B|4|SKVQ": {
-    "cycles": 67776,
-    "bw_GBps": 712.4894375040001
-  },
-  "gddr6|Llama-2 13B|4|AxCore": {
-    "cycles": 59378,
-    "bw_GBps": 735.805624992
-  },
-  "gddr6|Llama-2 13B|4|Tender": {
-    "cycles": 54327,
-    "bw_GBps": 740.7256874880001
-  },
-  "gddr6|Llama-2 13B|2|KIVI": {
-    "cycles": 47390,
-    "bw_GBps": 630.800062496
-  },
-  "gddr6|Llama-2 13B|2|KIVI 128g": {
-    "cycles": 36437,
-    "bw_GBps": 631.091687488
-  },
-  "gddr6|Llama-2 13B|2|KVQuant": {
-    "cycles": 41287,
-    "bw_GBps": 660.899744147
-  },
-  "gddr6|Llama-2 13B|2|Atom": {
-    "cycles": 36391,
-    "bw_GBps": 631.889437504
-  },
-  "gddr6|Llama-2 13B|2|Qserve": {
-    "cycles": 33077,
-    "bw_GBps": 660.438750016
-  },
-  "gddr6|Llama-2 13B|2|ADKV": {
-    "cycles": 30944,
-    "bw_GBps": 671.710312512
-  },
-  "gddr6|Llama-2 13B|2|SKVQ": {
-    "cycles": 49804,
-    "bw_GBps": 600.2251874880001
-  },
-  "gddr6|Llama-2 13B|2|AxCore": {
-    "cycles": 38968,
-    "bw_GBps": 649.112
-  },
-  "gddr6|Llama-2 13B|2|Tender": {
-    "cycles": 33077,
-    "bw_GBps": 660.438750016
-  },
-  "gddr6|Llama-3 8B|4|KIVI": {
-    "cycles": 15027,
-    "bw_GBps": 642.705562496
-  },
-  "gddr6|Llama-3 8B|4|KIVI 128g": {
-    "cycles": 12145,
-    "bw_GBps": 681.616437504
-  },
-  "gddr6|Llama-3 8B|4|KVQuant": {
-    "cycles": 15173,
-    "bw_GBps": 605.1895156300001
-  },
-  "gddr6|Llama-3 8B|4|Atom": {
-    "cycles": 12453,
-    "bw_GBps": 664.758
-  },
-  "gddr6|Llama-3 8B|4|Qserve": {
-    "cycles": 11951,
-    "bw_GBps": 673.439937504
-  },
-  "gddr6|Llama-3 8B|4|ADKV": {
-    "cycles": 11452,
-    "bw_GBps": 684.273
-  },
-  "gddr6|Llama-3 8B|4|SKVQ": {
-    "cycles": 14858,
-    "bw_GBps": 650.015937504
-  },
-  "gddr6|Llama-3 8B|4|AxCore": {
-    "cycles": 12878,
-    "bw_GBps": 678.5318750079999
-  },
-  "gddr6|Llama-3 8B|4|Tender": {
-    "cycles": 11951,
-    "bw_GBps": 673.439937504
-  },
-  "gddr6|Llama-3 8B|2|KIVI": {
-    "cycles": 11858,
-    "bw_GBps": 504.19318748800004
-  },
-  "gddr6|Llama-3 8B|2|KIVI 128g": {
-    "cycles": 8951,
-    "bw_GBps": 513.799312512
-  },
-  "gddr6|Llama-3 8B|2|KVQuant": {
-    "cycles": 11734,
-    "bw_GBps": 469.006847664
-  },
-  "gddr6|Llama-3 8B|2|Atom": {
-    "cycles": 8801,
-    "bw_GBps": 522.556249984
-  },
-  "gddr6|Llama-3 8B|2|Qserve": {
-    "cycles": 7956,
-    "bw_GBps": 549.1536874880001
-  },
-  "gddr6|Llama-3 8B|2|ADKV": {
-    "cycles": 7406,
-    "bw_GBps": 561.3125
-  },
-  "gddr6|Llama-3 8B|2|SKVQ": {
-    "cycles": 13510,
-    "bw_GBps": 442.540562496
-  },
-  "gddr6|Llama-3 8B|2|AxCore": {
-    "cycles": 9792,
-    "bw_GBps": 516.638
-  },
-  "gddr6|Llama-3 8B|2|Tender": {
-    "cycles": 7956,
-    "bw_GBps": 549.1536874880001
-  },
-  "gddr6|Llama-3 8B 32K|4|KIVI": {
-    "cycles": 50064,
-    "bw_GBps": 737.198687488
-  },
-  "gddr6|Llama-3 8B 32K|4|KIVI 128g": {
-    "cycles": 41781,
-    "bw_GBps": 751.257624992
-  },
-  "gddr6|Llama-3 8B 32K|4|KVQuant": {
-    "cycles": 47597,
-    "bw_GBps": 727.3040000079999
-  },
-  "gddr6|Llama-3 8B 32K|4|Atom": {
-    "cycles": 40464,
-    "bw_GBps": 775.709124992
-  },
-  "gddr6|Llama-3 8B 32K|4|Qserve": {
-    "cycles": 39240,
-    "bw_GBps": 776.465124992
-  },
-  "gddr6|Llama-3 8B 32K|4|ADKV": {
-    "cycles": 37963,
-    "bw_GBps": 778.828187488
-  },
-  "gddr6|Llama-3 8B 32K|4|SKVQ": {
-    "cycles": 48903,
-    "bw_GBps": 754.700437504
-  },
-  "gddr6|Llama-3 8B 32K|4|AxCore": {
-    "cycles": 45326,
-    "bw_GBps": 733.087
-  },
-  "gddr6|Llama-3 8B 32K|4|Tender": {
-    "cycles": 39240,
-    "bw_GBps": 776.465124992
-  },
-  "gddr6|Llama-3 8B 32K|2|KIVI": {
-    "cycles": 34298,
-    "bw_GBps": 646.984062496
-  },
-  "gddr6|Llama-3 8B 32K|2|KIVI 128g": {
-    "cycles": 24771,
-    "bw_GBps": 673.022437504
-  },
-  "gddr6|Llama-3 8B 32K|2|KVQuant": {
-    "cycles": 29382,
-    "bw_GBps": 677.306875
-  },
-  "gddr6|Llama-3 8B 32K|2|Atom": {
-    "cycles": 24418,
-    "bw_GBps": 682.752
-  },
-  "gddr6|Llama-3 8B 32K|2|Qserve": {
-    "cycles": 22257,
-    "bw_GBps": 707.716
-  },
-  "gddr6|Llama-3 8B 32K|2|ADKV": {
-    "cycles": 20406,
-    "bw_GBps": 727.7171249920001
-  },
-  "gddr6|Llama-3 8B 32K|2|SKVQ": {
-    "cycles": 32742,
-    "bw_GBps": 677.730750016
-  },
-  "gddr6|Llama-3 8B 32K|2|AxCore": {
-    "cycles": 28207,
-    "bw_GBps": 656.257187488
-  },
-  "gddr6|Llama-3 8B 32K|2|Tender": {
-    "cycles": 22257,
-    "bw_GBps": 707.716
-  },
   "hbm3|Llama-2 7B|4|KIVI": {
-    "cycles": 53452,
-    "bw_GBps": 1288.9475
+    "cycles": 98452,
+    "bw_GBps": 1382.533875008
   },
   "hbm3|Llama-2 7B|4|KIVI 128g": {
-    "cycles": 45898,
-    "bw_GBps": 1281.414375008
+    "cycles": 86605,
+    "bw_GBps": 1338.817750016
   },
   "hbm3|Llama-2 7B|4|KVQuant": {
-    "cycles": 54032,
-    "bw_GBps": 1204.981976555
+    "cycles": 98020,
+    "bw_GBps": 1301.6673710930002
   },
   "hbm3|Llama-2 7B|4|Atom": {
-    "cycles": 45496,
-    "bw_GBps": 1292.736875008
+    "cycles": 87336,
+    "bw_GBps": 1327.611875008
   },
   "hbm3|Llama-2 7B|4|Qserve": {
-    "cycles": 44608,
-    "bw_GBps": 1280.8005
+    "cycles": 86895,
+    "bw_GBps": 1295.6727500159998
   },
   "hbm3|Llama-2 7B|4|SKVQ": {
-    "cycles": 53453,
-    "bw_GBps": 1288.923375008
+    "cycles": 97746,
+    "bw_GBps": 1392.519750016
   },
   "hbm3|Llama-2 7B|4|AxCore": {
-    "cycles": 45506,
-    "bw_GBps": 1366.307249984
+    "cycles": 87623,
+    "bw_GBps": 1399.9742499840002
   },
   "hbm3|Llama-2 7B|4|Tender": {
-    "cycles": 44608,
-    "bw_GBps": 1280.8005
+    "cycles": 86895,
+    "bw_GBps": 1295.6727500159998
   },
   "hbm3|Llama-2 7B|4|ADKV": {
-    "cycles": 43469,
-    "bw_GBps": 1278.7232499840002
+    "cycles": 79831,
+    "bw_GBps": 1368.223750016
   },
   "hbm3|Llama-2 7B|2|KIVI": {
-    "cycles": 32474,
-    "bw_GBps": 1293.6582499840001
+    "cycles": 58666,
+    "bw_GBps": 1403.540375008
   },
   "hbm3|Llama-2 7B|2|KIVI 128g": {
-    "cycles": 23276,
-    "bw_GBps": 1371.7045
+    "cycles": 44631,
+    "bw_GBps": 1393.094
   },
   "hbm3|Llama-2 7B|2|KVQuant": {
-    "cycles": 29948,
-    "bw_GBps": 1276.246386715
+    "cycles": 53703,
+    "bw_GBps": 1374.5286328190002
   },
   "hbm3|Llama-2 7B|2|Atom": {
-    "cycles": 23004,
-    "bw_GBps": 1387.923624992
+    "cycles": 43797,
+    "bw_GBps": 1419.621875008
   },
   "hbm3|Llama-2 7B|2|Qserve": {
-    "cycles": 22208,
-    "bw_GBps": 1362.004
+    "cycles": 41640,
+    "bw_GBps": 1412.4486249919998
   },
   "hbm3|Llama-2 7B|2|SKVQ": {
-    "cycles": 32159,
-    "bw_GBps": 1306.329624992
+    "cycles": 57460,
+    "bw_GBps": 1432.998624992
   },
   "hbm3|Llama-2 7B|2|AxCore": {
-    "cycles": 26687,
-    "bw_GBps": 1322.3147500159998
+    "cycles": 49223,
+    "bw_GBps": 1399.6875
   },
   "hbm3|Llama-2 7B|2|Tender": {
-    "cycles": 22208,
-    "bw_GBps": 1362.004
+    "cycles": 41640,
+    "bw_GBps": 1412.4486249919998
   },
   "hbm3|Llama-2 7B|2|ADKV": {
-    "cycles": 20685,
-    "bw_GBps": 1387.3945
+    "cycles": 39112,
+    "bw_GBps": 1417.813875008
   },
   "hbm3|Llama-2 13B|4|KIVI": {
-    "cycles": 68722,
-    "bw_GBps": 1253.179875008
+    "cycles": 122924,
+    "bw_GBps": 1384.119750016
   },
   "hbm3|Llama-2 13B|4|KIVI 128g": {
-    "cycles": 58388,
-    "bw_GBps": 1259.127750016
+    "cycles": 109573,
+    "bw_GBps": 1322.729
   },
   "hbm3|Llama-2 13B|4|KVQuant": {
-    "cycles": 73748,
-    "bw_GBps": 1103.191304678
+    "cycles": 123356,
+    "bw_GBps": 1292.47264062
   },
   "hbm3|Llama-2 13B|4|Atom": {
-    "cycles": 57981,
-    "bw_GBps": 1267.9662499840001
+    "cycles": 109306,
+    "bw_GBps": 1325.96
   },
   "hbm3|Llama-2 13B|4|Qserve": {
-    "cycles": 56813,
-    "bw_GBps": 1257.0615
+    "cycles": 108733,
+    "bw_GBps": 1294.3113750080001
   },
   "hbm3|Llama-2 13B|4|SKVQ": {
-    "cycles": 68634,
-    "bw_GBps": 1254.786624992
+    "cycles": 123610,
+    "bw_GBps": 1376.438249984
   },
   "hbm3|Llama-2 13B|4|AxCore": {
-    "cycles": 58264,
-    "bw_GBps": 1333.9107500159998
+    "cycles": 110564,
+    "bw_GBps": 1386.865875008
   },
   "hbm3|Llama-2 13B|4|Tender": {
-    "cycles": 56813,
-    "bw_GBps": 1257.0615
+    "cycles": 108733,
+    "bw_GBps": 1294.3113750080001
   },
   "hbm3|Llama-2 13B|4|ADKV": {
-    "cycles": 56180,
-    "bw_GBps": 1236.757249984
+    "cycles": 99781,
+    "bw_GBps": 1368.33
   },
   "hbm3|Llama-2 13B|2|KIVI": {
-    "cycles": 40876,
-    "bw_GBps": 1284.685875008
+    "cycles": 73346,
+    "bw_GBps": 1403.282124992
   },
   "hbm3|Llama-2 13B|2|KIVI 128g": {
-    "cycles": 29708,
-    "bw_GBps": 1343.4005
+    "cycles": 55512,
+    "bw_GBps": 1400.0391249919999
   },
   "hbm3|Llama-2 13B|2|KVQuant": {
-    "cycles": 36031,
-    "bw_GBps": 1325.2462890660001
+    "cycles": 66879,
+    "bw_GBps": 1378.875953124
   },
   "hbm3|Llama-2 13B|2|Atom": {
-    "cycles": 29173,
-    "bw_GBps": 1368.037
+    "cycles": 54344,
+    "bw_GBps": 1430.129750016
   },
   "hbm3|Llama-2 13B|2|Qserve": {
-    "cycles": 28200,
-    "bw_GBps": 1340.752875008
+    "cycles": 51304,
+    "bw_GBps": 1432.9866249919999
   },
   "hbm3|Llama-2 13B|2|SKVQ": {
-    "cycles": 40672,
-    "bw_GBps": 1291.1295
+    "cycles": 71276,
+    "bw_GBps": 1444.036249984
   },
   "hbm3|Llama-2 13B|2|AxCore": {
-    "cycles": 32901,
-    "bw_GBps": 1340.7121249919999
+    "cycles": 61132,
+    "bw_GBps": 1408.771624992
   },
   "hbm3|Llama-2 13B|2|Tender": {
-    "cycles": 28200,
-    "bw_GBps": 1340.752875008
+    "cycles": 51304,
+    "bw_GBps": 1432.9866249919999
   },
   "hbm3|Llama-2 13B|2|ADKV": {
-    "cycles": 26365,
-    "bw_GBps": 1360.6227500159998
+    "cycles": 47720,
+    "bw_GBps": 1452.5758750080001
   },
   "hbm3|Llama-3 8B|4|KIVI": {
-    "cycles": 12268,
-    "bw_GBps": 1403.9945
+    "cycles": 23248,
+    "bw_GBps": 1463.709
   },
   "hbm3|Llama-3 8B|4|KIVI 128g": {
-    "cycles": 10724,
-    "bw_GBps": 1371.091875008
+    "cycles": 20759,
+    "bw_GBps": 1396.361875008
   },
   "hbm3|Llama-3 8B|4|KVQuant": {
-    "cycles": 12216,
-    "bw_GBps": 1338.87460938
+    "cycles": 22856,
+    "bw_GBps": 1402.475218744
   },
   "hbm3|Llama-3 8B|4|Atom": {
-    "cycles": 9997,
-    "bw_GBps": 1470.8002499840002
+    "cycles": 20487,
+    "bw_GBps": 1414.901
   },
   "hbm3|Llama-3 8B|4|Qserve": {
-    "cycles": 9808,
-    "bw_GBps": 1456.309875008
+    "cycles": 20584,
+    "bw_GBps": 1367.4151249919998
   },
   "hbm3|Llama-3 8B|4|SKVQ": {
-    "cycles": 12256,
-    "bw_GBps": 1405.3692499840001
+    "cycles": 23234,
+    "bw_GBps": 1464.591
   },
   "hbm3|Llama-3 8B|4|AxCore": {
-    "cycles": 10727,
-    "bw_GBps": 1449.0346249919999
+    "cycles": 20978,
+    "bw_GBps": 1461.888
   },
   "hbm3|Llama-3 8B|4|Tender": {
-    "cycles": 9808,
-    "bw_GBps": 1456.309875008
+    "cycles": 20584,
+    "bw_GBps": 1367.4151249919998
   },
   "hbm3|Llama-3 8B|4|ADKV": {
-    "cycles": 10039,
-    "bw_GBps": 1384.222
+    "cycles": 19903,
+    "bw_GBps": 1371.9875
   },
   "hbm3|Llama-3 8B|2|KIVI": {
-    "cycles": 7933,
-    "bw_GBps": 1323.9082499840001
+    "cycles": 14994,
+    "bw_GBps": 1372.884249984
   },
   "hbm3|Llama-3 8B|2|KIVI 128g": {
-    "cycles": 6130,
-    "bw_GBps": 1302.112375008
+    "cycles": 10664,
+    "bw_GBps": 1457.595124992
   },
   "hbm3|Llama-3 8B|2|KVQuant": {
-    "cycles": 7994,
-    "bw_GBps": 1205.160312508
+    "cycles": 12506,
+    "bw_GBps": 1488.22103124
   },
   "hbm3|Llama-3 8B|2|Atom": {
-    "cycles": 5815,
-    "bw_GBps": 1372.648124992
+    "cycles": 10642,
+    "bw_GBps": 1460.6083750080002
   },
   "hbm3|Llama-3 8B|2|Qserve": {
-    "cycles": 5752,
-    "bw_GBps": 1314.646375008
+    "cycles": 10029,
+    "bw_GBps": 1466.1072499840002
   },
   "hbm3|Llama-3 8B|2|SKVQ": {
-    "cycles": 8087,
-    "bw_GBps": 1298.697124992
+    "cycles": 14791,
+    "bw_GBps": 1391.726375008
   },
   "hbm3|Llama-3 8B|2|AxCore": {
-    "cycles": 6722,
-    "bw_GBps": 1312.429875008
+    "cycles": 11703,
+    "bw_GBps": 1471.7768750080002
   },
   "hbm3|Llama-3 8B|2|Tender": {
-    "cycles": 5752,
-    "bw_GBps": 1314.646375008
+    "cycles": 10029,
+    "bw_GBps": 1466.1072499840002
   },
   "hbm3|Llama-3 8B|2|ADKV": {
-    "cycles": 5560,
-    "bw_GBps": 1290.389124992
+    "cycles": 9524,
+    "bw_GBps": 1455.6262499840002
   },
   "hbm3|Llama-3 8B 32K|4|KIVI": {
-    "cycles": 71709,
-    "bw_GBps": 938.814312512
+    "cycles": 211028,
+    "bw_GBps": 1276.066375008
   },
   "hbm3|Llama-3 8B 32K|4|KIVI 128g": {
-    "cycles": 65263,
-    "bw_GBps": 877.050937504
+    "cycles": 180684,
+    "bw_GBps": 1267.162
   },
   "hbm3|Llama-3 8B 32K|4|KVQuant": {
-    "cycles": 70842,
-    "bw_GBps": 891.256017564
+    "cycles": 197559,
+    "bw_GBps": 1274.779640616
   },
   "hbm3|Llama-3 8B 32K|4|Atom": {
-    "cycles": 59890,
-    "bw_GBps": 955.735062496
+    "cycles": 179322,
+    "bw_GBps": 1276.786375008
   },
   "hbm3|Llama-3 8B 32K|4|Qserve": {
-    "cycles": 59669,
-    "bw_GBps": 931.112687488
+    "cycles": 172752,
+    "bw_GBps": 1286.4352499840002
   },
   "hbm3|Llama-3 8B 32K|4|SKVQ": {
-    "cycles": 68106,
-    "bw_GBps": 988.480249984
+    "cycles": 207730,
+    "bw_GBps": 1296.3257500159998
   },
   "hbm3|Llama-3 8B 32K|4|AxCore": {
-    "cycles": 65509,
-    "bw_GBps": 925.060624992
+    "cycles": 190216,
+    "bw_GBps": 1274.336375008
   },
   "hbm3|Llama-3 8B 32K|4|Tender": {
-    "cycles": 59669,
-    "bw_GBps": 931.112687488
+    "cycles": 172752,
+    "bw_GBps": 1286.4352499840002
   },
   "hbm3|Llama-3 8B 32K|4|ADKV": {
-    "cycles": 58997,
-    "bw_GBps": 913.791812512
+    "cycles": 169442,
+    "bw_GBps": 1271.8961249919998
   },
   "hbm3|Llama-3 8B 32K|2|KIVI": {
-    "cycles": 32045,
-    "bw_GBps": 1261.815375008
+    "cycles": 122607,
+    "bw_GBps": 1319.170124992
   },
   "hbm3|Llama-3 8B 32K|2|KIVI 128g": {
-    "cycles": 24149,
-    "bw_GBps": 1256.8806249919999
+    "cycles": 91752,
+    "bw_GBps": 1323.237
   },
   "hbm3|Llama-3 8B 32K|2|KVQuant": {
-    "cycles": 28439,
-    "bw_GBps": 1274.7211484369998
+    "cycles": 110768,
+    "bw_GBps": 1302.7042968839999
   },
   "hbm3|Llama-3 8B 32K|2|Atom": {
-    "cycles": 22800,
-    "bw_GBps": 1331.246124992
+    "cycles": 91685,
+    "bw_GBps": 1324.204
   },
   "hbm3|Llama-3 8B 32K|2|Qserve": {
-    "cycles": 20365,
-    "bw_GBps": 1407.905750016
+    "cycles": 84866,
+    "bw_GBps": 1351.401
   },
   "hbm3|Llama-3 8B 32K|2|SKVQ": {
-    "cycles": 32652,
-    "bw_GBps": 1238.3582499840002
+    "cycles": 117821,
+    "bw_GBps": 1372.756
   },
   "hbm3|Llama-3 8B 32K|2|AxCore": {
-    "cycles": 26423,
-    "bw_GBps": 1275.904750016
+    "cycles": 102144,
+    "bw_GBps": 1320.223624992
   },
   "hbm3|Llama-3 8B 32K|2|Tender": {
-    "cycles": 20365,
-    "bw_GBps": 1407.905750016
+    "cycles": 84866,
+    "bw_GBps": 1351.401
   },
   "hbm3|Llama-3 8B 32K|2|ADKV": {
-    "cycles": 19600,
-    "bw_GBps": 1378.796375008
+    "cycles": 80346,
+    "bw_GBps": 1343.7677500159998
+  },
+  "gddr6|Llama-2 7B|4|KIVI": {
+    "cycles": 100253,
+    "bw_GBps": 752.3355
+  },
+  "gddr6|Llama-2 7B|4|KIVI 128g": {
+    "cycles": 84436,
+    "bw_GBps": 762.544937504
+  },
+  "gddr6|Llama-2 7B|4|KVQuant": {
+    "cycles": 93317,
+    "bw_GBps": 758.2572343630001
+  },
+  "gddr6|Llama-2 7B|4|Atom": {
+    "cycles": 84659,
+    "bw_GBps": 760.536312512
+  },
+  "gddr6|Llama-2 7B|4|Qserve": {
+    "cycles": 81908,
+    "bw_GBps": 763.6206249920001
+  },
+  "gddr6|Llama-2 7B|4|SKVQ": {
+    "cycles": 101621,
+    "bw_GBps": 742.207687488
+  },
+  "gddr6|Llama-2 7B|4|AxCore": {
+    "cycles": 90604,
+    "bw_GBps": 751.241249984
+  },
+  "gddr6|Llama-2 7B|4|Tender": {
+    "cycles": 81908,
+    "bw_GBps": 763.6206249920001
+  },
+  "gddr6|Llama-2 7B|4|ADKV": {
+    "cycles": 78313,
+    "bw_GBps": 775.1846249920001
+  },
+  "gddr6|Llama-2 7B|2|KIVI": {
+    "cycles": 66316,
+    "bw_GBps": 693.500437504
+  },
+  "gddr6|Llama-2 7B|2|KIVI 128g": {
+    "cycles": 50470,
+    "bw_GBps": 692.540812512
+  },
+  "gddr6|Llama-2 7B|2|KVQuant": {
+    "cycles": 57353,
+    "bw_GBps": 720.5303222640001
+  },
+  "gddr6|Llama-2 7B|2|Atom": {
+    "cycles": 50269,
+    "bw_GBps": 695.309875008
+  },
+  "gddr6|Llama-2 7B|2|Qserve": {
+    "cycles": 47366,
+    "bw_GBps": 699.0863750079999
+  },
+  "gddr6|Llama-2 7B|2|SKVQ": {
+    "cycles": 68199,
+    "bw_GBps": 674.3526249920001
+  },
+  "gddr6|Llama-2 7B|2|AxCore": {
+    "cycles": 55074,
+    "bw_GBps": 701.451624992
+  },
+  "gddr6|Llama-2 7B|2|Tender": {
+    "cycles": 47366,
+    "bw_GBps": 699.0863750079999
+  },
+  "gddr6|Llama-2 7B|2|ADKV": {
+    "cycles": 43388,
+    "bw_GBps": 720.7826874880001
+  },
+  "gddr6|Llama-2 13B|4|KIVI": {
+    "cycles": 124726,
+    "bw_GBps": 755.895750016
+  },
+  "gddr6|Llama-2 13B|4|KIVI 128g": {
+    "cycles": 105219,
+    "bw_GBps": 764.9075
+  },
+  "gddr6|Llama-2 13B|4|KVQuant": {
+    "cycles": 116427,
+    "bw_GBps": 759.437472644
+  },
+  "gddr6|Llama-2 13B|4|Atom": {
+    "cycles": 105273,
+    "bw_GBps": 764.515187488
+  },
+  "gddr6|Llama-2 13B|4|Qserve": {
+    "cycles": 101921,
+    "bw_GBps": 767.0970624959999
+  },
+  "gddr6|Llama-2 13B|4|SKVQ": {
+    "cycles": 125066,
+    "bw_GBps": 753.8408750079999
+  },
+  "gddr6|Llama-2 13B|4|AxCore": {
+    "cycles": 112326,
+    "bw_GBps": 757.454437504
+  },
+  "gddr6|Llama-2 13B|4|Tender": {
+    "cycles": 101921,
+    "bw_GBps": 767.0970624959999
+  },
+  "gddr6|Llama-2 13B|4|ADKV": {
+    "cycles": 97642,
+    "bw_GBps": 777.1634375040001
+  },
+  "gddr6|Llama-2 13B|2|KIVI": {
+    "cycles": 80820,
+    "bw_GBps": 711.305624992
+  },
+  "gddr6|Llama-2 13B|2|KIVI 128g": {
+    "cycles": 62037,
+    "bw_GBps": 704.267937504
+  },
+  "gddr6|Llama-2 13B|2|KVQuant": {
+    "cycles": 69672,
+    "bw_GBps": 740.999144538
+  },
+  "gddr6|Llama-2 13B|2|Atom": {
+    "cycles": 62142,
+    "bw_GBps": 703.077875008
+  },
+  "gddr6|Llama-2 13B|2|Qserve": {
+    "cycles": 58797,
+    "bw_GBps": 703.967187488
+  },
+  "gddr6|Llama-2 13B|2|SKVQ": {
+    "cycles": 81740,
+    "bw_GBps": 703.299750016
+  },
+  "gddr6|Llama-2 13B|2|AxCore": {
+    "cycles": 67244,
+    "bw_GBps": 718.126312512
+  },
+  "gddr6|Llama-2 13B|2|Tender": {
+    "cycles": 58797,
+    "bw_GBps": 703.967187488
+  },
+  "gddr6|Llama-2 13B|2|ADKV": {
+    "cycles": 53664,
+    "bw_GBps": 728.452
+  },
+  "gddr6|Llama-3 8B|4|KIVI": {
+    "cycles": 26282,
+    "bw_GBps": 717.4481249920001
+  },
+  "gddr6|Llama-3 8B|4|KIVI 128g": {
+    "cycles": 22677,
+    "bw_GBps": 709.818812512
+  },
+  "gddr6|Llama-3 8B|4|KVQuant": {
+    "cycles": 26388,
+    "bw_GBps": 673.633109368
+  },
+  "gddr6|Llama-3 8B|4|Atom": {
+    "cycles": 22738,
+    "bw_GBps": 707.9145624959999
+  },
+  "gddr6|Llama-3 8B|4|Qserve": {
+    "cycles": 22099,
+    "bw_GBps": 707.573187488
+  },
+  "gddr6|Llama-3 8B|4|SKVQ": {
+    "cycles": 26981,
+    "bw_GBps": 698.8611249920001
+  },
+  "gddr6|Llama-3 8B|4|AxCore": {
+    "cycles": 23870,
+    "bw_GBps": 712.8766249920001
+  },
+  "gddr6|Llama-3 8B|4|Tender": {
+    "cycles": 22099,
+    "bw_GBps": 707.573187488
+  },
+  "gddr6|Llama-3 8B|4|ADKV": {
+    "cycles": 20448,
+    "bw_GBps": 742.2123125119999
+  },
+  "gddr6|Llama-3 8B|2|KIVI": {
+    "cycles": 18185,
+    "bw_GBps": 632.254249984
+  },
+  "gddr6|Llama-3 8B|2|KIVI 128g": {
+    "cycles": 13386,
+    "bw_GBps": 652.7815
+  },
+  "gddr6|Llama-3 8B|2|KVQuant": {
+    "cycles": 17204,
+    "bw_GBps": 605.522179688
+  },
+  "gddr6|Llama-3 8B|2|Atom": {
+    "cycles": 13434,
+    "bw_GBps": 650.4491249920001
+  },
+  "gddr6|Llama-3 8B|2|Qserve": {
+    "cycles": 13158,
+    "bw_GBps": 629.1405624959999
+  },
+  "gddr6|Llama-3 8B|2|SKVQ": {
+    "cycles": 18051,
+    "bw_GBps": 636.947750016
+  },
+  "gddr6|Llama-3 8B|2|AxCore": {
+    "cycles": 15028,
+    "bw_GBps": 642.662812512
+  },
+  "gddr6|Llama-3 8B|2|Tender": {
+    "cycles": 13158,
+    "bw_GBps": 629.1405624959999
+  },
+  "gddr6|Llama-3 8B|2|ADKV": {
+    "cycles": 11521,
+    "bw_GBps": 678.6155624959999
+  },
+  "gddr6|Llama-3 8B 32K|4|KIVI": {
+    "cycles": 192219,
+    "bw_GBps": 768.022187488
+  },
+  "gddr6|Llama-3 8B 32K|4|KIVI 128g": {
+    "cycles": 160691,
+    "bw_GBps": 781.333
+  },
+  "gddr6|Llama-3 8B 32K|4|KVQuant": {
+    "cycles": 181292,
+    "bw_GBps": 761.652830068
+  },
+  "gddr6|Llama-3 8B 32K|4|Atom": {
+    "cycles": 160149,
+    "bw_GBps": 783.977312512
+  },
+  "gddr6|Llama-3 8B 32K|4|Qserve": {
+    "cycles": 154840,
+    "bw_GBps": 787.096124992
+  },
+  "gddr6|Llama-3 8B 32K|4|SKVQ": {
+    "cycles": 191834,
+    "bw_GBps": 769.5636249920001
+  },
+  "gddr6|Llama-3 8B 32K|4|AxCore": {
+    "cycles": 172941,
+    "bw_GBps": 768.537312512
+  },
+  "gddr6|Llama-3 8B 32K|4|Tender": {
+    "cycles": 154840,
+    "bw_GBps": 787.096124992
+  },
+  "gddr6|Llama-3 8B 32K|4|ADKV": {
+    "cycles": 148647,
+    "bw_GBps": 795.137124992
+  },
+  "gddr6|Llama-3 8B 32K|2|KIVI": {
+    "cycles": 121382,
+    "bw_GBps": 731.253687488
+  },
+  "gddr6|Llama-3 8B 32K|2|KIVI 128g": {
+    "cycles": 89363,
+    "bw_GBps": 746.2345
+  },
+  "gddr6|Llama-3 8B 32K|2|KVQuant": {
+    "cycles": 109419,
+    "bw_GBps": 723.9524121090001
+  },
+  "gddr6|Llama-3 8B 32K|2|Atom": {
+    "cycles": 90582,
+    "bw_GBps": 736.192124992
+  },
+  "gddr6|Llama-3 8B 32K|2|Qserve": {
+    "cycles": 83241,
+    "bw_GBps": 756.9171874880001
+  },
+  "gddr6|Llama-3 8B 32K|2|SKVQ": {
+    "cycles": 122307,
+    "bw_GBps": 725.723249984
+  },
+  "gddr6|Llama-3 8B 32K|2|AxCore": {
+    "cycles": 103218,
+    "bw_GBps": 717.357249984
+  },
+  "gddr6|Llama-3 8B 32K|2|Tender": {
+    "cycles": 83241,
+    "bw_GBps": 756.9171874880001
+  },
+  "gddr6|Llama-3 8B 32K|2|ADKV": {
+    "cycles": 78270,
+    "bw_GBps": 757.982937504
   }
 }
