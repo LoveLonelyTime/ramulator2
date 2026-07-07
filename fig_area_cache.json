@@ -1,0 +1,236 @@
+{
+  "hbm3|AxCore|0.005": {
+    "tile": 2,
+    "pe": 2,
+    "area_used": 0.0042239999999999995,
+    "cycles": 13532644
+  },
+  "hbm3|AxCore|0.01": {
+    "tile": 4,
+    "pe": 2,
+    "area_used": 0.008447999999999999,
+    "cycles": 6816520
+  },
+  "hbm3|AxCore|0.02": {
+    "tile": 4,
+    "pe": 4,
+    "area_used": 0.016895999999999998,
+    "cycles": 3547146
+  },
+  "hbm3|AxCore|0.05": {
+    "tile": 8,
+    "pe": 5,
+    "area_used": 0.04223999999999999,
+    "cycles": 1426554
+  },
+  "hbm3|AxCore|0.1": {
+    "tile": 16,
+    "pe": 5,
+    "area_used": 0.08447999999999999,
+    "cycles": 732354
+  },
+  "hbm3|AxCore|0.2": {
+    "tile": 16,
+    "pe": 11,
+    "area_used": 0.18585599999999997,
+    "cycles": 354885
+  },
+  "hbm3|AxCore|0.5": {
+    "tile": 32,
+    "pe": 14,
+    "area_used": 0.47308799999999995,
+    "cycles": 142877
+  },
+  "hbm3|AxCore|1.0": {
+    "tile": 32,
+    "pe": 29,
+    "area_used": 0.9799679999999998,
+    "cycles": 79495
+  },
+  "hbm3|AxCore|2.0": {
+    "tile": 64,
+    "pe": 29,
+    "area_used": 1.9599359999999997,
+    "cycles": 44626
+  },
+  "hbm3|AxCore|5.0": {
+    "tile": 128,
+    "pe": 36,
+    "area_used": 4.866047999999999,
+    "cycles": 45924
+  },
+  "hbm3|AxCore|10.0": {
+    "tile": 128,
+    "pe": 73,
+    "area_used": 9.867263999999999,
+    "cycles": 47005
+  },
+  "hbm3|AxCore|20.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 17.301503999999998,
+    "cycles": 47104
+  },
+  "hbm3|AxCore|40.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 17.301503999999998,
+    "cycles": 47104
+  },
+  "hbm3|ADKV|0.005": {
+    "tile": 1,
+    "pe": 1,
+    "area_used": 0.0035852712,
+    "cycles": 53808692
+  },
+  "hbm3|ADKV|0.01": {
+    "tile": 1,
+    "pe": 2,
+    "area_used": 0.0071705424,
+    "cycles": 26940639
+  },
+  "hbm3|ADKV|0.02": {
+    "tile": 2,
+    "pe": 2,
+    "area_used": 0.0143410848,
+    "cycles": 13531407
+  },
+  "hbm3|ADKV|0.05": {
+    "tile": 4,
+    "pe": 3,
+    "area_used": 0.0430232544,
+    "cycles": 4646738
+  },
+  "hbm3|ADKV|0.1": {
+    "tile": 8,
+    "pe": 3,
+    "area_used": 0.0860465088,
+    "cycles": 2324652
+  },
+  "hbm3|ADKV|0.2": {
+    "tile": 8,
+    "pe": 6,
+    "area_used": 0.1720930176,
+    "cycles": 1217466
+  },
+  "hbm3|ADKV|0.5": {
+    "tile": 16,
+    "pe": 8,
+    "area_used": 0.4589147136,
+    "cycles": 445039
+  },
+  "hbm3|ADKV|1.0": {
+    "tile": 16,
+    "pe": 17,
+    "area_used": 0.9751937664000001,
+    "cycles": 237141
+  },
+  "hbm3|ADKV|2.0": {
+    "tile": 32,
+    "pe": 17,
+    "area_used": 1.9503875328000002,
+    "cycles": 119503
+  },
+  "hbm3|ADKV|5.0": {
+    "tile": 64,
+    "pe": 21,
+    "area_used": 4.8186044928000005,
+    "cycles": 51148
+  },
+  "hbm3|ADKV|10.0": {
+    "tile": 64,
+    "pe": 43,
+    "area_used": 9.8666663424,
+    "cycles": 38948
+  },
+  "hbm3|ADKV|20.0": {
+    "tile": 128,
+    "pe": 43,
+    "area_used": 19.7333326848,
+    "cycles": 42170
+  },
+  "hbm3|ADKV|40.0": {
+    "tile": 128,
+    "pe": 87,
+    "area_used": 39.9255800832,
+    "cycles": 43333
+  },
+  "hbm3|Tender|0.05": {
+    "tile": 16,
+    "pe": 6,
+    "area_used": 0.046874879999999994,
+    "cycles": 609981
+  },
+  "hbm3|Tender|0.1": {
+    "tile": 16,
+    "pe": 12,
+    "area_used": 0.09374975999999999,
+    "cycles": 316680
+  },
+  "hbm3|Tender|0.2": {
+    "tile": 32,
+    "pe": 12,
+    "area_used": 0.18749951999999998,
+    "cycles": 159066
+  },
+  "hbm3|Tender|0.5": {
+    "tile": 32,
+    "pe": 32,
+    "area_used": 0.49999871999999995,
+    "cycles": 57840
+  },
+  "hbm3|Tender|1.0": {
+    "tile": 64,
+    "pe": 32,
+    "area_used": 0.9999974399999999,
+    "cycles": 40109
+  },
+  "hbm3|Tender|2.0": {
+    "tile": 64,
+    "pe": 64,
+    "area_used": 1.9999948799999998,
+    "cycles": 42967
+  },
+  "hbm3|Tender|5.0": {
+    "tile": 128,
+    "pe": 80,
+    "area_used": 4.9999872,
+    "cycles": 44296
+  },
+  "hbm3|Tender|10.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 7.999979519999999,
+    "cycles": 44047
+  },
+  "hbm3|Tender|20.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 7.999979519999999,
+    "cycles": 44047
+  },
+  "hbm3|Tender|40.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 7.999979519999999,
+    "cycles": 44047
+  },
+  "hbm3|AxCore|80.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 17.301503999999998,
+    "cycles": 47104
+  },
+  "hbm3|Tender|80.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 7.999979519999999,
+    "cycles": 44047
+  },
+  "hbm3|ADKV|80.0": {
+    "tile": 128,
+    "pe": 128,
+    "area_used": 58.7410833408,
+    "cycles": 42912
+  }
+}

@@ -37,15 +37,15 @@ import matplotlib.font_manager as fm
 
 font_path = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
 
-# 手动添加字体到管理器
-fm.fontManager.addfont(font_path)
+# # 手动添加字体到管理器
+# fm.fontManager.addfont(font_path)
 
-# 从文件创建 FontProperties 获取准确名称
-prop = fm.FontProperties(fname=font_path)
-font_name = prop.get_name()
+# # 从文件创建 FontProperties 获取准确名称
+# prop = fm.FontProperties(fname=font_path)
+# font_name = prop.get_name()
 
-# 设置全局字体
-plt.rcParams['font.family'] = font_name
+# # 设置全局字体
+# plt.rcParams['font.family'] = font_name
 
 def compute(groups, batch = 64, head = 32, dim = 128, context_length = 4096, metadata_per_group = 4, bytes_per_ele = 0.5):
     quantized_sizes = []
@@ -79,10 +79,10 @@ METHODS = [
     ("KIVI",       "gen_mem_trace_kivi.py",    []),
     # ("KIVI 128g",  "gen_mem_trace_kivi.py",    ["--group-size", "128"]),
     ("KVQuant",    "gen_mem_trace_kvquant.py", []),
+    ("AxCore",     "gen_mem_trace_kivi.py",    ["--group-size", "64"]),
     ("Atom",       "gen_mem_trace_atom.py",    []),
     ("Qserve",     "gen_mem_trace_qserve.py",  []),
-    ("SKVQ",       "gen_mem_trace_skvq.py",    []),
-    ("AxCore",     "gen_mem_trace_kivi.py",    ["--group-size", "64"]),
+    # ("SKVQ",       "gen_mem_trace_skvq.py",    []),
     # ("Tender",     "gen_mem_trace_qserve.py",  []),
     ("ADKV",       "gen_mem_trace_adkv.py",    []),
 ]
@@ -92,7 +92,7 @@ METHOD_LABELS = [m[0] for m in METHODS]
 PJ_PER_BIT = {"HBM2": 3.9, "GDDR5": 14.0}   # O'Connor MICRO'17
 MEMORIES = ["GDDR5", "HBM2"]                # left GDDR5, right HBM2
 
-DEFAULT_PJ_PER_FMA = 1.02
+DEFAULT_PJ_PER_FMA = 1.1
 PJ_PER_FMA_OVERRIDE = {
     "ADKV":   1.52, # TSMC 28NM 1GHz
     "AxCore": 0.11,
@@ -100,16 +100,34 @@ PJ_PER_FMA_OVERRIDE = {
 }
 
 # ---- plotting ----
-REGION_ORDER = ["K", "Q", "ZPSC", "PARAM", "K_OUTLIER", "K_OUTLIER_PTR"]
+METADATA_REGIONS = {"ZPSC", "PARAM", "K_OUTLIER", "K_OUTLIER_PTR"}
+SKIP_REGIONS = {"Q"}
+REGION_ORDER = ["K", "Metadata"]
 REGION_COLORS = {
-    "K":              "#4E79A7",
-    "Q":              "#5C86B3",
-    "ZPSC":           "#7EA6D8",
-    "PARAM":          "#7EA6D8",
-    "K_OUTLIER":      "#7EA6D8",
-    "K_OUTLIER_PTR":  "#7EA6D8",
-    "Compute":        "#CEE1EF",
+    "K": "#4E79A7",
+    "Metadata": "#7EA6D8",
+    "Compute":  "#CEE1EF",
 }
+REG_LABELS = {
+    "K": "KV Cache",
+    "Metadata": "Metadata",
+    "Compute":  "Compute",
+}
+
+
+def merge_metadata(regions: dict) -> dict:
+    out = {}
+    meta = 0
+    for r, b in regions.items():
+        if r in SKIP_REGIONS:
+            continue
+        if r in METADATA_REGIONS:
+            meta += b
+        else:
+            out[r] = b
+    if meta:
+        out["Metadata"] = meta
+    return out
 
 
 # ---- helpers ------------------------------------------------------------
@@ -200,7 +218,7 @@ def build_energy(bytes_cache: dict) -> dict:
         for bits in BITS_LIST:
             energy[mem][bits] = {}
             for name, _, _ in METHODS:
-                regions = bytes_cache[cache_key(bits, name)]
+                regions = merge_metadata(bytes_cache[cache_key(bits, name)])
                 region_pj = {r: b * 8 * pj_bit / tokens
                              for r, b in regions.items()}
                 compute_pj = fmas * pj_per_fma(name) / tokens
@@ -277,7 +295,7 @@ def plot(energy: dict, outpath: Path):
                     continue
                 ax.bar(xs, heights, width=bar_w, bottom=bottoms,
                        color=REGION_COLORS.get(reg, "#aaaaaa"),
-                       label=reg if not legend_added else None)
+                       label=REG_LABELS[reg] if not legend_added else None)
                 bottoms += heights
 
             heights = np.array([
@@ -293,11 +311,15 @@ def plot(energy: dict, outpath: Path):
                 for m in METHOD_LABELS
             ])
 
-            # for x, val in zip(xs, totals_norm[:, bi]):
-            #     ax.text(x, val, f"{val:.2f}",
-            #             ha="center", va="bottom", fontsize=6, rotation=90)
+            for x, val in zip(xs, totals_norm[:, bi]):
+                if val >= 90:
+                    ax.text(x, val - 1, f"{val:.2f}", ha="center", va="top",
+                            fontsize=6, fontweight="bold", rotation=90)
+                else:
+                    ax.text(x, val, f"{val:.2f}", ha="center", va="bottom",
+                            fontsize=6, fontweight="bold", rotation=90)
 
-        legend_added = True
+            legend_added = True
 
         y_top_est = 100
 
@@ -344,13 +366,13 @@ def plot(energy: dict, outpath: Path):
     axes[0].set_ylabel("Energy Breakdown (%)", fontsize=11)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    # plt.figlegend(handles, labels,
-    #        loc='upper center',
-    #        bbox_to_anchor=(0.5, 1),
-    #        ncol=7,
-    #        frameon=False,
-    #        fontsize=11,
-    #        bbox_transform=fig.transFigure)
+    plt.figlegend(handles, labels,
+           loc='lower center',
+           bbox_to_anchor=(0.5, 0.98),
+           ncol=4,
+           frameon=False,
+           fontsize=11,
+           bbox_transform=fig.transFigure)
 
     # fig.tight_layout()
     fig.savefig(outpath, dpi=180, bbox_inches="tight")
@@ -361,7 +383,7 @@ def plot(energy: dict, outpath: Path):
 def main():
     bytes_cache = collect_bytes()
     energy = build_energy(bytes_cache)
-    plot(energy, ROOT / "fig_ram.pdf")
+    plot(energy, ROOT / "fig_ram.png")
 
 
 if __name__ == "__main__":
