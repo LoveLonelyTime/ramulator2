@@ -29,6 +29,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import brokenaxes
+from matplotlib.gridspec import GridSpec
+
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import numpy as np
@@ -37,15 +40,15 @@ import matplotlib.font_manager as fm
 
 font_path = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
 
-# # 手动添加字体到管理器
-# fm.fontManager.addfont(font_path)
+# 手动添加字体到管理器
+fm.fontManager.addfont(font_path)
 
-# # 从文件创建 FontProperties 获取准确名称
-# prop = fm.FontProperties(fname=font_path)
-# font_name = prop.get_name()
+# 从文件创建 FontProperties 获取准确名称
+prop = fm.FontProperties(fname=font_path)
+font_name = prop.get_name()
 
-# # 设置全局字体
-# plt.rcParams['font.family'] = font_name
+# 设置全局字体
+plt.rcParams['font.family'] = font_name
 
 def compute(groups, batch = 64, head = 32, dim = 128, context_length = 4096, metadata_per_group = 4, bytes_per_ele = 0.5):
     quantized_sizes = []
@@ -92,9 +95,9 @@ METHOD_LABELS = [m[0] for m in METHODS]
 PJ_PER_BIT = {"HBM2": 3.9, "GDDR5": 14.0}   # O'Connor MICRO'17
 MEMORIES = ["GDDR5", "HBM2"]                # left GDDR5, right HBM2
 
-DEFAULT_PJ_PER_FMA = 1.1
+DEFAULT_PJ_PER_FMA = 1.19 # 1GHz tcbn28hpcplusbwp7t40p140tt0p8v25c
 PJ_PER_FMA_OVERRIDE = {
-    "ADKV":   1.52, # TSMC 28NM 1GHz
+    "ADKV":   1.52, # 1GHz tcbn28hpcplusbwp7t40p140tt0p8v25c
     "AxCore": 0.11,
     "Tender": 0.26,
 }
@@ -238,7 +241,19 @@ def plot(energy: dict, outpath: Path):
     sections: all methods at 4-bit on the left, all methods at 2-bit on the
     right, separated by a small gap. Methods repeat within each section.
     """
-    fig, axes = plt.subplots(1, len(MEMORIES), figsize=(12, 4), sharey=False)
+
+    fig = plt.figure(figsize=(12, 4))
+    sps = GridSpec(1, len(MEMORIES))
+    axes = []
+
+    for i in range(len(MEMORIES)):
+        bax = brokenaxes.brokenaxes(
+            ylims=((0, 10), (60, 100)),
+            hspace=.05,
+            d=0.005,
+            subplot_spec=sps[i]
+        )
+        axes.append(bax)
 
     # union of regions across all cells, in preferred order
     seen = set()
@@ -263,11 +278,12 @@ def plot(energy: dict, outpath: Path):
         return base + (n_methods - 1) / 2
     
     def fig_center() -> float:
-        return n_methods - 1 + section_gap / 2
+        return n_methods - 1 + section_gap / 2 + 0.7
 
     legend_added = False
-
+    print(", ".join(METHOD_LABELS))
     for ci, mem in enumerate(MEMORIES):
+        print(f"{mem}:")
         ax = axes[ci]
         entries = energy[mem]
 
@@ -278,6 +294,7 @@ def plot(energy: dict, outpath: Path):
 
         for bi, bits in enumerate(BITS_LIST):
             xs = section_xs(bi)
+            print(f"    {bits}:")
 
             kivi_total = (
                 sum(entries[bits]["KIVI"]["regions"].values())
@@ -291,6 +308,7 @@ def plot(energy: dict, outpath: Path):
                     entries[bits][m]["regions"].get(reg, 0.0) * scale
                     for m in METHOD_LABELS
                 ])
+                print(f"    {REG_LABELS[reg]}: {heights}")
                 if heights.sum() == 0:
                     continue
                 ax.bar(xs, heights, width=bar_w, bottom=bottoms,
@@ -298,9 +316,12 @@ def plot(energy: dict, outpath: Path):
                        label=REG_LABELS[reg] if not legend_added else None)
                 bottoms += heights
 
+
+
             heights = np.array([
                 entries[bits][m]["compute"] * scale for m in METHOD_LABELS
             ])
+            print(f"    {REG_LABELS["Compute"]}: {heights}")
             ax.bar(xs, heights, width=bar_w, bottom=bottoms,
                    color=REGION_COLORS["Compute"],
                    label="Compute" if not legend_added else None)
@@ -313,19 +334,25 @@ def plot(energy: dict, outpath: Path):
 
             for x, val in zip(xs, totals_norm[:, bi]):
                 if val >= 90:
-                    ax.text(x, val - 1, f"{val:.2f}", ha="center", va="top",
-                            fontsize=6, fontweight="bold", rotation=90)
+                    ax.text(x, val - 0.5, f"{val:.2f}", ha="center", va="top",
+                            fontsize=9, fontweight="bold", rotation=90)
                 else:
-                    ax.text(x, val, f"{val:.2f}", ha="center", va="bottom",
-                            fontsize=6, fontweight="bold", rotation=90)
+                    ax.text(x, val + 0.5, f"{val:.2f}", ha="center", va="bottom",
+                            fontsize=9, fontweight="bold", rotation=90)
 
             legend_added = True
 
         y_top_est = 100
 
+        ax.axs[1].tick_params(
+            axis='y',
+            labelleft=False
+        )
+        ax.axs[0].tick_params(axis="y", labelsize=11)
+
         # section labels ("4-bit" / "2-bit") above each half
         for bi, bits in enumerate(BITS_LIST):
-            ax.text(section_center(bi), 105,
+            ax.axs[0].text(section_center(bi), 103,
                     f"{bits}-Bit",
                     ha="center", va="top", fontsize=11, fontweight="bold")
 
@@ -345,30 +372,28 @@ def plot(energy: dict, outpath: Path):
         # title = (f"{mem}  ({PJ_PER_BIT[mem]} pJ/bit)   " + "   ".join(parts))
         # ax.set_title(title, fontsize=10)
 
-        ax.text(fig_center(), -20, f"{mem}",
+        ax.axs[1].text(fig_center(), -10, f"{mem}",
             ha="center", va="top",
             fontsize=11, fontweight="bold",
         )
 
-        ax.set_ylim(0, y_top_est)
-
-        all_xs = np.concatenate([section_xs(bi) for bi in range(len(BITS_LIST))])
-        ax.set_xticks(all_xs)
-        ax.set_xticklabels(METHOD_LABELS * len(BITS_LIST),
-                           rotation=30, ha="right", fontsize=11)
-        ax.set_xlim(-0.8, section_xs(len(BITS_LIST) - 1)[-1] + 0.8)
-        ax.tick_params(axis="y", labelsize=11)
-
+        # ax.set_ylim(0, y_top_est)
         ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
-        ax.spines['left'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        all_xs = np.concatenate([section_xs(bi) for bi in range(len(BITS_LIST))])
+        ax.axs[1].set_xticks(all_xs)
+        ax.axs[1].set_xticklabels(METHOD_LABELS * len(BITS_LIST), rotation=30, ha="right", fontsize=11)
+        ax.axs[0].spines['top'].set_visible(True)
+        ax.axs[0].spines['left'].set_visible(False)
+        ax.axs[0].spines['right'].set_visible(False)
+        ax.axs[1].spines['left'].set_visible(False)
+        ax.axs[1].spines['right'].set_visible(False)
     
     axes[0].set_ylabel("Energy Breakdown (%)", fontsize=11)
 
-    handles, labels = axes[0].get_legend_handles_labels()
+    handles, labels = axes[0].axs[0].get_legend_handles_labels()
     plt.figlegend(handles, labels,
            loc='lower center',
-           bbox_to_anchor=(0.5, 0.98),
+           bbox_to_anchor=(0.5, 0.92),
            ncol=4,
            frameon=False,
            fontsize=11,
@@ -383,7 +408,7 @@ def plot(energy: dict, outpath: Path):
 def main():
     bytes_cache = collect_bytes()
     energy = build_energy(bytes_cache)
-    plot(energy, ROOT / "fig_ram.png")
+    plot(energy, ROOT / "fig_ram.pdf")
 
 
 if __name__ == "__main__":
