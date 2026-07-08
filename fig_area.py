@@ -53,7 +53,7 @@ BATCH = 4
 HEAD = 32
 DIM = 128
 TOKEN_NUM = 2048
-BITS = 4
+BITS_LIST = [2, 4]
 
 # ---- hardware knobs ----
 FREQ_HZ = 1e9
@@ -66,7 +66,7 @@ PE_MAX = 1024
 
 # Per-PE area (μm^2) at W4/FP16, 1 GHz — see file docstring.
 PE_AREA_UM2 = {
-    "ADKV":    3585.2712,   # AxCore-style approximate PE (W4 shared-add)
+    "ADKV":    2693.43,   # AxCore-style approximate PE (W4 shared-add)
     "AxCore":  1056,
     # "KIVI":    2475,   # fpma
     # "KVQuant": 2475,
@@ -75,16 +75,16 @@ PE_AREA_UM2 = {
     "Tender":  488.28,
     # "SKVQ":    2475,
 }
-DEFAULT_PE_AREA_UM2 = 2475
+DEFAULT_PE_AREA_UM2 = 2002.53
 
 # ---- methods ----
 METHODS = [
-    # ("KIVI",    "gen_mem_trace_kivi.py",    []),
-    # ("KVQuant", "gen_mem_trace_kvquant.py", []),
+    ("KIVI",    "gen_mem_trace_kivi.py",    []),
+    ("KVQuant", "gen_mem_trace_kvquant.py", []),
     ("AxCore",  "gen_mem_trace_kivi.py",    ["--group-size", "64"]),
-    # ("Atom",    "gen_mem_trace_atom.py",    []),
-    # ("Qserve",  "gen_mem_trace_qserve.py",  []),
-    ("Tender",  "gen_mem_trace_qserve.py",    []),
+    ("Atom",    "gen_mem_trace_atom.py",    []),
+    ("Qserve",  "gen_mem_trace_qserve.py",  []),
+    # ("Tender",  "gen_mem_trace_qserve.py",    []),
     ("ADKV",    "gen_mem_trace_adkv.py",    []),
 ]
 METHOD_LABELS = [m[0] for m in METHODS]
@@ -100,10 +100,10 @@ METHOD_COLORS = {
 }
 
 # ---- backends ----
-MEMS = ["hbm3"]
+MEMS = ["gddr6", "hbm3"]
 
 # Area budgets (mm^2) — enough range to reach DRAM saturation.
-#     0.005, 0.01, 0.02, 0.05, 0.1
+#     0.005, 0.01, 0.02, 0.05, 0.1, 20.0, 40.0
 AREA_BUDGETS_MM2 = [
     0.2, 0.5,
     1.0, 2.0, 5.0, 10.0, 20.0
@@ -137,11 +137,19 @@ def pick_pe_tile(area_budget_mm2: float, area_per_pe_um2: float):
         tile //= 2
     pe = min(PE_MAX, total_cap // tile)
     pe = max(1, pe)
+    pe = 315
+    # pe = 50
     total = tile * pe
     return tile, pe, total * area_per_pe_mm2
 
 
-def run_gen(script: str, pe_num: int, tile_num: int, extra: list) -> None:
+def burst_size_for(mem: str) -> int:
+    """DDR-class → 64 B bursts, HBM-class → 32 B bursts."""
+    return 32 if mem.lower().startswith("hbm") else 64
+
+
+def run_gen(script: str, pe_num: int, tile_num: int, bits: int,
+            burst_size: int, extra: list) -> None:
     argv = [
         sys.executable, str(ROOT / script),
         "--pe-num", str(pe_num),
@@ -150,7 +158,8 @@ def run_gen(script: str, pe_num: int, tile_num: int, extra: list) -> None:
         "--head", str(HEAD),
         "--dim", str(DIM),
         "--token-num", str(TOKEN_NUM),
-        "--bits", str(BITS),
+        "--bits", str(bits),
+        "--burst-size", str(burst_size),
         "-o", str(MEM_TXT),
     ] + list(extra)
     r = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True)
@@ -175,8 +184,8 @@ def run_sim(mem: str) -> int:
     return max(int(c["cycles"]) for c in ctrls)
 
 
-def cache_key(mem: str, method: str, budget: float) -> str:
-    return f"{mem}|{method}|{budget}"
+def cache_key(mem: str, method: str, budget: float, bits: int) -> str:
+    return f"{mem}|{method}|{budget}|b{bits}"
 
 
 def collect(force: bool) -> dict:
@@ -184,29 +193,34 @@ def collect(force: bool) -> dict:
     if CACHE_FILE.exists() and not force:
         cache = json.loads(CACHE_FILE.read_text())
 
-    for mem in MEMS:
-        for name, script, extra in METHODS:
-            area_pp = PE_AREA_UM2.get(name, DEFAULT_PE_AREA_UM2)
-            for budget in AREA_BUDGETS_MM2:
-                key = cache_key(mem, name, budget)
-                if key in cache:
-                    continue
-                sized = pick_pe_tile(budget, area_pp)
-                if sized is None:
-                    cache[key] = {"skipped": True}
+    for bits in BITS_LIST:
+        for mem in MEMS:
+            for name, script, extra in METHODS:
+                area_pp = PE_AREA_UM2.get(name, DEFAULT_PE_AREA_UM2)
+                for budget in [PLOT_BUDGET]:
+                    key = cache_key(mem, name, budget, bits)
+                    if key in cache:
+                        continue
+                    sized = pick_pe_tile(budget, area_pp)
+                    if sized is None:
+                        cache[key] = {"skipped": True}
+                        CACHE_FILE.write_text(json.dumps(cache, indent=2))
+                        continue
+                    tile, pe, area_used = sized
+                    bs = burst_size_for(mem)
+                    print(f"[gen] mem={mem} method={name} bits={bits}"
+                          f" budget={budget}"
+                          f" -> tile={tile} pe={pe} bs={bs}"
+                          f" area={area_used:.4f}mm^2")
+                    run_gen(script, pe_num=pe, tile_num=tile, bits=bits,
+                            burst_size=bs, extra=extra)
+                    cycles = run_sim(mem)
+                    cache[key] = {
+                        "tile": tile, "pe": pe,
+                        "area_used": area_used,
+                        "cycles": cycles,
+                    }
                     CACHE_FILE.write_text(json.dumps(cache, indent=2))
-                    continue
-                tile, pe, area_used = sized
-                print(f"[gen] mem={mem} method={name} budget={budget}"
-                      f" -> tile={tile} pe={pe} area={area_used:.4f}mm^2")
-                run_gen(script, pe_num=pe, tile_num=tile, extra=extra)
-                cycles = run_sim(mem)
-                cache[key] = {
-                    "tile": tile, "pe": pe,
-                    "area_used": area_used,
-                    "cycles": cycles,
-                }
-                CACHE_FILE.write_text(json.dumps(cache, indent=2))
     return cache
 
 
@@ -215,55 +229,74 @@ def tokens_per_s(entry: dict) -> float:
     return BATCH / seconds_per_step
 
 
-def tokens_per_s_per_mm2(entry: dict) -> float:
-    return tokens_per_s(entry) / entry["area_used"]
-
-
 # ---- plotting -----------------------------------------------------------
+BASELINE = "KIVI"
+PLOT_BUDGET = 20.0   # mm^2 — DRAM-saturated regime
+
+
+def _plot_one(ax, cache, mem, bits, show_ylabel_left):
+    rows = []
+    for name, _, _ in METHODS:
+        entry = cache.get(cache_key(mem, name, PLOT_BUDGET, bits))
+        if not entry or entry.get("skipped"):
+            continue
+        tps = tokens_per_s(entry)
+        tps_per_area = tps / entry["area_used"]
+        pe_total = entry["tile"] * entry["pe"]
+        rows.append((name, tps_per_area, pe_total))
+
+    base = next((r for r in rows if r[0] == BASELINE), None)
+    if base is None:
+        return
+    base_eff, base_pe = base[1], base[2]
+
+    names = [r[0] for r in rows]
+    eff_norm = [r[1] / base_eff for r in rows]
+    pe_norm = [r[2] / base_pe for r in rows]
+    # Bar colors: light-blue → dark-blue gradient by METHODS order,
+    # so KIVI is lightest and ADKV is darkest.
+    order = {n: i for i, n in enumerate(METHOD_LABELS)}
+    n_methods = max(1, len(METHOD_LABELS) - 1)
+    cmap = plt.get_cmap("Blues")
+    colors = [cmap(0.25 + 0.7 * order.get(n, 0) / n_methods) for n in names]
+
+    x = np.arange(len(names))
+    bars = ax.bar(x, eff_norm, width=0.55, color=colors, alpha=0.85, zorder=2) # edgecolor="black", linewidth=0.6, 
+    ax.axhline(1.0, color="grey", linewidth=0.8, linestyle=":", alpha=0.6)
+
+    raw_max = max(max(eff_norm), 1.05)
+    ymax = math.ceil(raw_max * 10) / 10 + 0.05  # small headroom for labels
+    ymin = 0.9
+    ax.set_ylim(ymin, ymax)
+    ax.set_yticks(np.round(np.arange(ymin, ymax + 1e-9, 0.1), 1))
+
+    # Per-bar annotation: "tps×  /  PE×"
+    for bar, eff, pe in zip(bars, eff_norm, pe_norm):
+        ax.text(bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + 0.005,
+                f"{eff:.2f}×\nPE {pe:.2f}×",
+                ha="center", va="bottom", fontsize=8, linespacing=1.1)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, fontsize=9)
+    if show_ylabel_left:
+        ax.set_ylabel(f"Tokens/s/mm$^2$  (norm. to {BASELINE})", fontsize=10)
+    ax.set_title(f"{mem.upper()}  |  W{bits}", fontsize=11, fontweight="bold")
+    ax.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
+
+
 def plot(cache: dict, outpath: Path):
-    fig, axes = plt.subplots(1, len(MEMS), figsize=(11, 4), sharey=False)
-    if len(MEMS) == 1:
-        axes = [axes]
+    # Rows = MEMS (GDDR6, HBM3), Cols = BITS_LIST (2, 4). 2x2 grid.
+    nrows, ncols = len(MEMS), len(BITS_LIST)
+    fig, axes = plt.subplots(nrows, ncols,
+                             figsize=(12, 6),
+                             sharey=False)
+    axes = np.atleast_2d(axes)
 
-    for ci, mem in enumerate(MEMS):
-        ax = axes[ci]                # left  Y: absolute tokens/s
-        ax2 = ax.twinx()             # right Y: tokens/s/mm^2
-
-        for name, _, _ in METHODS:
-            xs, ys_abs, ys_eff = [], [], []
-            for budget in AREA_BUDGETS_MM2:
-                entry = cache.get(cache_key(mem, name, budget))
-                if not entry or entry.get("skipped"):
-                    continue
-                xs.append(entry["area_used"])
-                ys_abs.append(tokens_per_s(entry))
-                ys_eff.append(tokens_per_s_per_mm2(entry))
-            if not xs:
-                continue
-            color = METHOD_COLORS.get(name, None)
-            ax.plot(xs, ys_abs, marker="o", linewidth=1.8, markersize=4,
-                    color=color, label=name)
-            ax2.plot(xs, ys_eff, marker="s", linewidth=1.2, markersize=3,
-                     linestyle="--", color=color, alpha=0.7)
-
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-        ax2.set_yscale("log")
-        ax.set_xlabel("PE Area (mm$^2$)", fontsize=11)
-        if ci == 0:
-            ax.set_ylabel("Tokens / s  (solid, ─○)", fontsize=11)
-        if ci == len(MEMS) - 1:
-            ax2.set_ylabel("Tokens / s / mm$^2$  (dashed, ┅□)", fontsize=11)
-        ax.set_title(mem.upper(), fontsize=11, fontweight="bold")
-        ax.grid(True, which="both", linewidth=0.3, alpha=0.4)
-
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels,
-               loc="lower center",
-               ncol=len(labels),
-               bbox_to_anchor=(0.5, 1.0),
-               frameon=False, fontsize=11,
-               bbox_transform=fig.transFigure)
+    for r, mem in enumerate(MEMS):
+        for c, bits in enumerate(BITS_LIST):
+            ax = axes[r, c]
+            _plot_one(ax, cache, mem, bits, show_ylabel_left=(c == 0))
 
     fig.tight_layout()
     fig.savefig(outpath, dpi=180, bbox_inches="tight")
