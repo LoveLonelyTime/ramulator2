@@ -38,9 +38,35 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+import matplotlib.colors as mcolors
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+import matplotlib.font_manager as fm
+
+font_path = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
+
+# 手动添加字体到管理器
+fm.fontManager.addfont(font_path)
+
+# 从文件创建 FontProperties 获取准确名称
+prop = fm.FontProperties(fname=font_path)
+font_name = prop.get_name()
+
+# 设置全局字体
+plt.rcParams['font.family'] = font_name
+
+def compute(groups, batch = 64, head = 32, dim = 128, context_length = 4096, metadata_per_group = 4, bytes_per_ele = 0.5):
+    quantized_sizes = []
+    metadata_sizes = []
+    for group in groups:
+        quantized_size = 2 * batch * head * dim * context_length * bytes_per_ele
+        metadata_size = 2 * batch * head * dim * context_length / group * metadata_per_group
+        total = quantized_size + metadata_size
+        quantized_sizes.append(quantized_size / total * 100)
+        metadata_sizes.append(metadata_size / total * 100)
+    return quantized_sizes, metadata_sizes
 
 
 ROOT = Path(__file__).resolve().parent
@@ -257,12 +283,14 @@ def _plot_one(ax, cache, mem, bits, show_ylabel_left):
     # so KIVI is lightest and ADKV is darkest.
     order = {n: i for i, n in enumerate(METHOD_LABELS)}
     n_methods = max(1, len(METHOD_LABELS) - 1)
-    cmap = plt.get_cmap("Blues")
-    colors = [cmap(0.25 + 0.7 * order.get(n, 0) / n_methods) for n in names]
+
+    colors = ["#CEE1EF", "#7EA6D8", "#4E79A7"] #688DB4
+    cmap = mcolors.LinearSegmentedColormap.from_list('my_gradient', colors)
+    colors = [cmap((order.get(n, 0) + 1) / n_methods) for n in names]
 
     x = np.arange(len(names))
-    bars = ax.bar(x, eff_norm, width=0.55, color=colors, alpha=0.85, zorder=2) # edgecolor="black", linewidth=0.6, 
-    ax.axhline(1.0, color="grey", linewidth=0.8, linestyle=":", alpha=0.6)
+    bars = ax.bar(x, eff_norm, width=0.55, color=colors, zorder=2) # edgecolor="black", linewidth=0.6, 
+    # ax.axhline(1.0, color="grey", linewidth=0.8, linestyle=":", alpha=0.6)
 
     raw_max = max(max(eff_norm), 1.05)
     ymax = math.ceil(raw_max * 10) / 10 + 0.05  # small headroom for labels
@@ -274,14 +302,15 @@ def _plot_one(ax, cache, mem, bits, show_ylabel_left):
     for bar, eff, pe in zip(bars, eff_norm, pe_norm):
         ax.text(bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + 0.005,
-                f"{eff:.2f}×\nPE {pe:.2f}×",
-                ha="center", va="bottom", fontsize=8, linespacing=1.1)
+                f"{eff:.2f}\n #PEs = {pe:.2f}",
+                ha="center", va="bottom", fontsize=11, linespacing=1.1)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=9)
+    ax.set_xticklabels(names, fontsize=11)
+    ax.tick_params(axis="y", labelsize=11)
     if show_ylabel_left:
-        ax.set_ylabel(f"Tokens/s/mm$^2$  (norm. to {BASELINE})", fontsize=10)
-    ax.set_title(f"{mem.upper()}  |  W{bits}", fontsize=11, fontweight="bold")
+        ax.set_ylabel(f"Normalized Tokens/s/mm$^2$ - {mem.upper()}", fontsize=11)
+    ax.set_title(f"{bits}-Bit", fontsize=11, fontweight="bold")
     ax.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
 
 
@@ -289,7 +318,7 @@ def plot(cache: dict, outpath: Path):
     # Rows = MEMS (GDDR6, HBM3), Cols = BITS_LIST (2, 4). 2x2 grid.
     nrows, ncols = len(MEMS), len(BITS_LIST)
     fig, axes = plt.subplots(nrows, ncols,
-                             figsize=(12, 6),
+                             figsize=(12, 8),
                              sharey=False)
     axes = np.atleast_2d(axes)
 
@@ -311,7 +340,7 @@ def main():
     args = ap.parse_args()
 
     cache = collect(force=args.force)
-    plot(cache, ROOT / "fig_area.png")
+    plot(cache, ROOT / "fig_area.pdf")
 
 
 if __name__ == "__main__":

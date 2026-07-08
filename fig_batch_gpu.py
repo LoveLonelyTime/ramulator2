@@ -32,6 +32,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+import matplotlib.font_manager as fm
+
+font_path = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
+
+# 手动添加字体到管理器
+fm.fontManager.addfont(font_path)
+
+# 从文件创建 FontProperties 获取准确名称
+prop = fm.FontProperties(fname=font_path)
+font_name = prop.get_name()
+
+# 设置全局字体
+plt.rcParams['font.family'] = font_name
+
+def compute(groups, batch = 64, head = 32, dim = 128, context_length = 4096, metadata_per_group = 4, bytes_per_ele = 0.5):
+    quantized_sizes = []
+    metadata_sizes = []
+    for group in groups:
+        quantized_size = 2 * batch * head * dim * context_length * bytes_per_ele
+        metadata_size = 2 * batch * head * dim * context_length / group * metadata_per_group
+        total = quantized_size + metadata_size
+        quantized_sizes.append(quantized_size / total * 100)
+        metadata_sizes.append(metadata_size / total * 100)
+    return quantized_sizes, metadata_sizes
+
+
+
 ROOT = Path(__file__).resolve().parent
 MEM_TXT = ROOT / "mem.txt"
 CACHE_FILE = ROOT / "fig_batch_gpu_cache.json"
@@ -170,63 +197,87 @@ def plot(sa_cache: dict, gpu: dict, outpath: Path):
     sa_util = {B: sa_cache[sa_key(B)].get("bw_util", 0.0) for B in BATCHES}
 
     x = np.arange(len(BATCHES))
-    width = 0.36
-
-    sa_vals = [sa[B] for B in BATCHES]
-    gpu_vals = [gpu[B]["throughput"] for B in BATCHES]
+    width = 0.25
+    norm = gpu[1]["throughput"]
+    sa_vals = [sa[B] / norm for B in BATCHES]
+    gpu_vals = [gpu[B]["throughput"] / norm for B in BATCHES]
     sa_util_vals = [sa_util[B] * 100 for B in BATCHES]
     gpu_util_vals = [gpu[B]["bw_util"] * 100 for B in BATCHES]
 
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(8, 4))
     ax2 = ax.twinx()
 
     b1 = ax.bar(x - width / 2, sa_vals, width,
-                color="#1f4e79", edgecolor="black", linewidth=0.6,
+                color="#4E79A7",
                 label="SA-ADKV", zorder=2)
     b2 = ax.bar(x + width / 2, gpu_vals, width,
-                color="#f2a900", edgecolor="black", linewidth=0.6,
+                color="#CEE1EF", 
                 label="GPU-ADKV", zorder=2)
+
+    # DRAM bandwidth utilization on right Y (percent), one line each.
+    l1, = ax2.plot(x, sa_util_vals, linewidth=4,
+                   color="#e61c5d", zorder=3, alpha=0.9,
+                   label="SA-ADKV BW Util.")
+    l2, = ax2.plot(x, gpu_util_vals, linewidth=4,
+                   color="#F088A9", zorder=3,  alpha=0.9,
+                   label="GPU-ADKV BW Util.")
+    
+    ax2.scatter(
+        x,
+        sa_util_vals,
+        color="#e61c5d",
+        s=80,
+        marker="o",
+        facecolors='white',
+        linewidths=2,
+        label=f'',
+        zorder=10
+    )
+
+    ax2.scatter(
+        x,
+        gpu_util_vals,
+        color="#F088A9",
+        s=80,
+        marker="o",
+        facecolors='white',
+        linewidths=2,
+        label=f'',
+        zorder=10,
+    )
 
     for bars, vals in [(b1, sa_vals), (b2, gpu_vals)]:
         for bar, v in zip(bars, vals):
             ax.text(bar.get_x() + bar.get_width() / 2,
                     bar.get_height(),
-                    f"{v/1e6:.1f}M",
-                    ha="center", va="bottom", fontsize=8)
+                    f"{v:.2f}",
+                    ha="center", va="bottom", fontsize=11, zorder=10)
 
-    # DRAM bandwidth utilization on right Y (percent), one line each.
-    l1, = ax2.plot(x, sa_util_vals, marker="D", markersize=7, linewidth=1.8,
-                   color="#1f4e79", linestyle="--", zorder=3,
-                   label="SA-ADKV BW util.")
-    l2, = ax2.plot(x, gpu_util_vals, marker="s", markersize=7, linewidth=1.8,
-                   color="#c0392b", linestyle="--", zorder=3,
-                   label="GPU-ADKV BW util.")
     for xi, v in zip(x, sa_util_vals):
-        ax2.text(xi - 0.05, v + 1.5, f"{v:.0f}%",
-                 ha="right", va="bottom", fontsize=8, color="#1f4e79")
+        ax2.text(xi - 0.05, v - 7.5, f"{v:.0f}%",
+                 ha="right", va="bottom", fontsize=11, color="#e61c5d")
     for xi, v in zip(x, gpu_util_vals):
-        ax2.text(xi + 0.05, v + 1.5, f"{v:.0f}%",
-                 ha="left", va="bottom", fontsize=8, color="#c0392b")
+        ax2.text(xi - 0.05, v + 3.5, f"{v:.0f}%",
+                 ha="left", va="bottom", fontsize=11, color="#F088A9")
 
     ax.set_xticks(x)
-    ax.set_xticklabels([f"B={B}" for B in BATCHES], fontsize=10)
-    ax.set_ylabel("Throughput  (tokens/s)", fontsize=11)
+    ax.set_xticklabels([f"{B}" for B in BATCHES], fontsize=11)
+    ax.set_xlabel("Batch Size", fontsize=11)
+    ax.set_ylim(0, 25)
+    ax.tick_params(axis="y", labelsize=11)
+    ax.set_ylabel("Normalized Throughput (Tokens/s)", fontsize=11)
     ax2.set_ylabel(
-        f"DRAM BW util.  (SA: {SA_PEAK_BW_MBPS/1000:.0f} GB/s;"
-        f" GPU: {GPU_PEAK_BW_MBPS/1000:.0f} GB/s)",
-        fontsize=10,
+        f"DRAM Bandwidth Util.",
+        fontsize=11,
     )
-    ax2.set_ylim(0, 105)
-    ax.set_title(f"SA-ADKV vs GPU-ADKV  |  {MEM.upper()}  |  W{BITS}"
-                 f"  |  T={TOKEN_NUM}", fontsize=11, fontweight="bold")
+    ax2.set_ylim(0, 100)
     ax.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
 
     handles = [b1, b2, l1, l2]
     labels = [h.get_label() for h in handles]
-    ax.legend(handles, labels, loc="upper left", frameon=False, fontsize=9)
+    ax.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.5, 1), frameon=False, fontsize=11, ncol=4)
 
-    ax.yaxis.set_major_formatter(
-        plt.FuncFormatter(lambda v, _p: f"{v/1e6:.0f}M"))
+    ax2.tick_params(axis="y", labelsize=11)
     ax2.yaxis.set_major_formatter(
         plt.FuncFormatter(lambda v, _p: f"{v:.0f}%"))
 
@@ -244,7 +295,7 @@ def main():
 
     sa_cache = collect_sa(force=args.force)
     gpu = load_gpu()
-    plot(sa_cache, gpu, ROOT / "fig_batch_gpu.png")
+    plot(sa_cache, gpu, ROOT / "fig_batch_gpu.pdf")
 
 
 if __name__ == "__main__":
