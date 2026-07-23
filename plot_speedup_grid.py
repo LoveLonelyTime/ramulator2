@@ -19,6 +19,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+import matplotlib.colors as mcolors
+
 
 import matplotlib.font_manager as fm
 
@@ -160,13 +162,19 @@ def main():
         sharex=True,
     )
     # colors = {4: "#4E79A7", 2: "#7EA6D8"}
-    colors = {"KIVI": "#B0DAFF", "KIVI 128g": "#A2CCF4" , "KVQuant": "#94BEE7", "Atom": "#86B0DA", "Qserve": "#78A2CD", "SKVQ": "#6A94C0", "AxCore": "#5C86B3", "Tender": "#4E79A7", "ADKV": "#2C4F73"}
+
+    # colors = {"KIVI": "#B0DAFF", "KIVI 128g": "#A2CCF4" , "KVQuant": "#94BEE7", "Atom": "#86B0DA", "Qserve": "#78A2CD", "SKVQ": "#6A94C0", "AxCore": "#5C86B3", "Tender": "#4E79A7", "ADKV": "#2C4F73"}
     n_methods = len(METHOD_LABELS)
     bit_gap   = 0.8                          # 4bit / 2bit 两 section 之间的间隙
     model_gap = 1.2                          # 相邻 model 之间的间隙（除去竖线）
     section_w = n_methods                    # 每个 section 占 9 位置
     model_w   = 2 * section_w + bit_gap      # 一个 model block 的宽度
     width     = 0.8
+
+    order = {n: i for i, n in enumerate(METHOD_LABELS)}
+    colors = ["#CEE1EF", "#7EA6D8", "#4E79A7"] #688DB4
+    cmap = mcolors.LinearSegmentedColormap.from_list('my_gradient', colors)
+    colors = [cmap((order.get(n, 0) + 1) / n_methods) for n in METHOD_LABELS]
 
     # 计算每个 (model_idx, bit) 的 x 起点
     def bit_xs(model_idx, bit):
@@ -214,9 +222,9 @@ def main():
             for bit in BITS:
                 xs = bit_xs(mi, bit)
                 bars = ax.bar(xs, speedups[bit],
-                              width=width, color=colors.values(),
+                              width=width, color=colors,
                               alpha = 1.0 if bit == 4 else 0.7,
-                              hatch = "////" if bit == 4 else "\\\\\\\\",
+                            #   hatch = "////" if bit == 4 else "\\\\\\\\",
                               edgecolor="#1A3A6B", linewidth=0.5,
                               label=f"{bit}bit" if (mi == 0 and r == 0) else None)
                 for bar, s in zip(bars, speedups[bit]):

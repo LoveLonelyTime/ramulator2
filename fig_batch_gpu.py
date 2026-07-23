@@ -204,23 +204,23 @@ def plot(sa_cache: dict, gpu: dict, outpath: Path):
     sa_util_vals = [sa_util[B] * 100 for B in BATCHES]
     gpu_util_vals = [gpu[B]["bw_util"] * 100 for B in BATCHES]
 
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(8, 3))
     ax2 = ax.twinx()
 
     b1 = ax.bar(x - width / 2, sa_vals, width,
                 color="#4E79A7",
-                label="SA-ADKV", zorder=2)
+                label="ADKV-SA", zorder=2)
     b2 = ax.bar(x + width / 2, gpu_vals, width,
                 color="#CEE1EF", 
-                label="GPU-ADKV", zorder=2)
+                label="ADKV-GPU", zorder=2)
 
     # DRAM bandwidth utilization on right Y (percent), one line each.
     l1, = ax2.plot(x, sa_util_vals, linewidth=4,
                    color="#e61c5d", zorder=3, alpha=0.9,
-                   label="SA-ADKV BW Util.")
+                   label="ADKV-SA BW Util.")
     l2, = ax2.plot(x, gpu_util_vals, linewidth=4,
                    color="#F088A9", zorder=3,  alpha=0.9,
-                   label="GPU-ADKV BW Util.")
+                   label="ADKV-GPU BW Util.")
     
     ax2.scatter(
         x,
@@ -254,7 +254,7 @@ def plot(sa_cache: dict, gpu: dict, outpath: Path):
                     ha="center", va="bottom", fontsize=11, zorder=10)
 
     for xi, v in zip(x, sa_util_vals):
-        ax2.text(xi - 0.05, v - 7.5, f"{v:.0f}%",
+        ax2.text(xi - 0.05, v - 10.5, f"{v:.0f}%",
                  ha="right", va="bottom", fontsize=11, color="#e61c5d")
     for xi, v in zip(x, gpu_util_vals):
         ax2.text(xi - 0.05, v + 3.5, f"{v:.0f}%",

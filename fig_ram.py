@@ -31,6 +31,7 @@ from pathlib import Path
 
 import brokenaxes
 from matplotlib.gridspec import GridSpec
+import matplotlib.ticker as mtick
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
@@ -382,6 +383,8 @@ def plot(energy: dict, outpath: Path):
         all_xs = np.concatenate([section_xs(bi) for bi in range(len(BITS_LIST))])
         ax.axs[1].set_xticks(all_xs)
         ax.axs[1].set_xticklabels(METHOD_LABELS * len(BITS_LIST), rotation=30, ha="right", fontsize=11)
+        ax.axs[0].set_yticks([60, 70, 80, 90, 100])
+        ax.axs[0].set_yticklabels(["60%", "70%", "80%", "90%", "100%"])
         ax.axs[0].spines['top'].set_visible(True)
         ax.axs[0].spines['left'].set_visible(False)
         ax.axs[0].spines['right'].set_visible(False)
@@ -389,6 +392,8 @@ def plot(energy: dict, outpath: Path):
         ax.axs[1].spines['right'].set_visible(False)
     
     axes[0].set_ylabel("Energy Breakdown (%)", fontsize=11)
+    axes[1].axs[0].yaxis.set_tick_params(labelleft=False)
+
 
     handles, labels = axes[0].axs[0].get_legend_handles_labels()
     plt.figlegend(handles, labels,

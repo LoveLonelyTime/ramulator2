@@ -306,11 +306,12 @@ def _plot_one(ax, cache, mem, bits, show_ylabel_left):
                 ha="center", va="bottom", fontsize=11, linespacing=1.1)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=11)
-    ax.tick_params(axis="y", labelsize=11)
+    ax.set_xticklabels(names, fontsize=13)
+    ax.tick_params(axis="y", labelsize=13)
     if show_ylabel_left:
-        ax.set_ylabel(f"Normalized Tokens/s/mm$^2$ - {mem.upper()}", fontsize=11)
-    ax.set_title(f"{bits}-Bit", fontsize=11, fontweight="bold")
+        ax.set_ylabel(f"Normalized Tokens/s/mm$^2$ - {mem.upper()}", fontsize=13)
+    if mem == "gddr6":
+        ax.set_title(f"{bits}-Bit", fontsize=13, fontweight="bold")
     ax.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
 
 
@@ -319,7 +320,7 @@ def plot(cache: dict, outpath: Path):
     nrows, ncols = len(MEMS), len(BITS_LIST)
     fig, axes = plt.subplots(nrows, ncols,
                              figsize=(12, 8),
-                             sharey=False)
+                             sharey=False, sharex=True)
     axes = np.atleast_2d(axes)
 
     for r, mem in enumerate(MEMS):
