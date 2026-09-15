@@ -293,7 +293,7 @@ def _plot_one(ax, cache, mem, bits, show_ylabel_left):
     # ax.axhline(1.0, color="grey", linewidth=0.8, linestyle=":", alpha=0.6)
 
     raw_max = max(max(eff_norm), 1.05)
-    ymax = math.ceil(raw_max * 10) / 10 + 0.05  # small headroom for labels
+    ymax = math.ceil(raw_max * 10) / 10 + 0.1  # small headroom for labels
     ymin = 0.9
     ax.set_ylim(ymin, ymax)
     ax.set_yticks(np.round(np.arange(ymin, ymax + 1e-9, 0.1), 1))
@@ -302,16 +302,20 @@ def _plot_one(ax, cache, mem, bits, show_ylabel_left):
     for bar, eff, pe in zip(bars, eff_norm, pe_norm):
         ax.text(bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + 0.005,
-                f"{eff:.2f}\n #PEs = {pe:.2f}",
-                ha="center", va="bottom", fontsize=11, linespacing=1.1)
+                f"{eff:.2f}\n",
+                ha="center", va="bottom", fontsize=15, linespacing=1.1, fontweight="bold")
+        ax.text(bar.get_x() + bar.get_width() / 2,
+                        bar.get_height() + 0.005,
+                        f"\n #PEs = {pe:.2f}",
+                        ha="center", va="bottom", fontsize=11, linespacing=1.1, fontweight="bold")
 
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=13)
-    ax.tick_params(axis="y", labelsize=13)
+    ax.set_xticklabels(names, fontsize=18)
+    ax.tick_params(axis="y", labelsize=18)
     if show_ylabel_left:
-        ax.set_ylabel(f"Normalized Tokens/s/mm$^2$ - {mem.upper()}", fontsize=13)
+        ax.set_ylabel(f"Normalized Tokens/s/mm$^2$ - {mem.upper()}", fontsize=16)
     if mem == "gddr6":
-        ax.set_title(f"{bits}-Bit", fontsize=13, fontweight="bold")
+        ax.set_title(f"{bits}-Bit", fontsize=20, fontweight="bold")
     ax.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
 
 

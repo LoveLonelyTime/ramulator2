@@ -336,10 +336,10 @@ def plot(energy: dict, outpath: Path):
             for x, val in zip(xs, totals_norm[:, bi]):
                 if val >= 90:
                     ax.text(x, val - 0.5, f"{val:.2f}", ha="center", va="top",
-                            fontsize=9, fontweight="bold", rotation=90)
+                            fontsize=13, fontweight="bold", rotation=90)
                 else:
                     ax.text(x, val + 0.5, f"{val:.2f}", ha="center", va="bottom",
-                            fontsize=9, fontweight="bold", rotation=90)
+                            fontsize=13, fontweight="bold", rotation=90)
 
             legend_added = True
 
@@ -349,13 +349,13 @@ def plot(energy: dict, outpath: Path):
             axis='y',
             labelleft=False
         )
-        ax.axs[0].tick_params(axis="y", labelsize=11)
+        ax.axs[0].tick_params(axis="y", labelsize=12)
 
         # section labels ("4-bit" / "2-bit") above each half
         for bi, bits in enumerate(BITS_LIST):
             ax.axs[0].text(section_center(bi), 103,
                     f"{bits}-Bit",
-                    ha="center", va="top", fontsize=11, fontweight="bold")
+                    ha="center", va="top", fontsize=16, fontweight="bold")
 
         # divider between the two sections
         divider_x = n_methods - 0.5 + section_gap / 2
@@ -375,14 +375,14 @@ def plot(energy: dict, outpath: Path):
 
         ax.axs[1].text(fig_center(), -10, f"{mem}",
             ha="center", va="top",
-            fontsize=11, fontweight="bold",
+            fontsize=15, fontweight="bold",
         )
 
         # ax.set_ylim(0, y_top_est)
         ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
         all_xs = np.concatenate([section_xs(bi) for bi in range(len(BITS_LIST))])
         ax.axs[1].set_xticks(all_xs)
-        ax.axs[1].set_xticklabels(METHOD_LABELS * len(BITS_LIST), rotation=30, ha="right", fontsize=11)
+        ax.axs[1].set_xticklabels(METHOD_LABELS * len(BITS_LIST), rotation=30, ha="right", fontsize=13)
         ax.axs[0].set_yticks([60, 70, 80, 90, 100])
         ax.axs[0].set_yticklabels(["60%", "70%", "80%", "90%", "100%"])
         ax.axs[0].spines['top'].set_visible(True)
@@ -391,7 +391,7 @@ def plot(energy: dict, outpath: Path):
         ax.axs[1].spines['left'].set_visible(False)
         ax.axs[1].spines['right'].set_visible(False)
     
-    axes[0].set_ylabel("Energy Breakdown (%)", fontsize=11)
+    axes[0].set_ylabel("Energy Breakdown (%)", fontsize=15)
     axes[1].axs[0].yaxis.set_tick_params(labelleft=False)
 
 
@@ -401,7 +401,7 @@ def plot(energy: dict, outpath: Path):
            bbox_to_anchor=(0.5, 0.92),
            ncol=4,
            frameon=False,
-           fontsize=11,
+           fontsize=15,
            bbox_transform=fig.transFigure)
 
     # fig.tight_layout()

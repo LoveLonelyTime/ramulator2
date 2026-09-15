@@ -54,7 +54,7 @@ MODELS = [
     ("Llama-2 7B",       4, 32, 128,  4096),
     ("Llama-2 13B",      4, 40, 128,  4096),
     ("Llama-3 8B",       4,  8, 128,  4096),
-    ("Llama-3 8B 32K",   4,  8, 128, 32768),
+    ("Llama-3.1 8B 32K",   4,  8, 128, 32768),
 ]
 
 BITS = [4, 2]
@@ -231,7 +231,7 @@ def main():
                     ax.text(bar.get_x() + bar.get_width() / 2,
                             s + 0.015,
                             f"{s:.2f}", ha="center", va="bottom",
-                            fontsize=15, rotation=90, fontweight="bold")
+                            fontsize=20, rotation=90, fontweight="bold")
 
         # y 上限（该行统一）
         y_top = 2.0
@@ -244,9 +244,9 @@ def main():
 
         # 每个 model 顶部 title 标签
         for mi, m in enumerate(MODELS):
-            ax.text(model_center(mi), -0.6, m[0],
+            ax.text(model_center(mi), -0.7, m[0],
                     ha="center", va="top",
-                    fontsize=20, fontweight="bold",
+                    fontsize=25, fontweight="bold",
                     )
             # bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="#666666", lw=0.6, alpha=0.9)
 
@@ -255,20 +255,20 @@ def main():
             for mi in range(len(MODELS)):
                 base = mi * (model_w + model_gap)
                 ax.text(base + section_w / 2 - 0.5, 2.2, "4-Bit",
-                        ha="center", va="top", fontsize=20, fontweight="bold")
+                        ha="center", va="top", fontsize=25, fontweight="bold")
                 ax.text(base + section_w + bit_gap + section_w / 2 - 0.5,
                         2.2, "2-Bit",
-                        ha="center", va="top", fontsize=20, fontweight="bold")
+                        ha="center", va="top", fontsize=25, fontweight="bold")
 
         ax.axhline(1.0, color="gray", linewidth=0.6, linestyle="--", zorder=-1)
-        ax.set_ylabel(f"Speedup - {mem.upper()}", fontsize=20)
-        ax.tick_params(axis="y", labelsize=15)
+        ax.set_ylabel(f"Speedup - {mem.upper()}", fontsize=25)
+        ax.tick_params(axis="y", labelsize=16)
         ax.grid(True, axis="y", linewidth=0.3, alpha=0.4)
 
         # 只在最后一行画 x tick 标签
         ax.set_xticks(all_x)
         if r == len(MEMORIES) - 1:
-            ax.set_xticklabels(all_labels, rotation=45, ha="right", fontsize=13)
+            ax.set_xticklabels(all_labels, rotation=45, ha="right", fontsize=16)
         else:
             ax.set_xticklabels([""] * len(all_x))
 

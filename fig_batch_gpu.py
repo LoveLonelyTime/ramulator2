@@ -192,99 +192,71 @@ def load_gpu() -> dict:
 # ---- plotting -----------------------------------------------------------
 
 def plot(sa_cache: dict, gpu: dict, outpath: Path):
-    sa = {sa_cache[sa_key(B)]["batch"]: sa_cache[sa_key(B)]["throughput"]
-          for B in BATCHES}
+    sa = {sa_cache[sa_key(B)]["batch"]: sa_cache[sa_key(B)]["throughput"] for B in BATCHES}
     sa_util = {B: sa_cache[sa_key(B)].get("bw_util", 0.0) for B in BATCHES}
 
     x = np.arange(len(BATCHES))
-    width = 0.25
+    width = 0.4
+
     norm = gpu[1]["throughput"]
     sa_vals = [sa[B] / norm for B in BATCHES]
     gpu_vals = [gpu[B]["throughput"] / norm for B in BATCHES]
     sa_util_vals = [sa_util[B] * 100 for B in BATCHES]
     gpu_util_vals = [gpu[B]["bw_util"] * 100 for B in BATCHES]
 
-    fig, ax = plt.subplots(figsize=(8, 3))
-    ax2 = ax.twinx()
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(8, 3), sharex=True)
 
-    b1 = ax.bar(x - width / 2, sa_vals, width,
-                color="#4E79A7",
-                label="ADKV-SA", zorder=2)
-    b2 = ax.bar(x + width / 2, gpu_vals, width,
-                color="#CEE1EF", 
-                label="ADKV-GPU", zorder=2)
-
-    # DRAM bandwidth utilization on right Y (percent), one line each.
-    l1, = ax2.plot(x, sa_util_vals, linewidth=4,
-                   color="#e61c5d", zorder=3, alpha=0.9,
-                   label="ADKV-SA BW Util.")
-    l2, = ax2.plot(x, gpu_util_vals, linewidth=4,
-                   color="#F088A9", zorder=3,  alpha=0.9,
-                   label="ADKV-GPU BW Util.")
-    
-    ax2.scatter(
-        x,
-        sa_util_vals,
-        color="#e61c5d",
-        s=80,
-        marker="o",
-        facecolors='white',
-        linewidths=2,
-        label=f'',
-        zorder=10
-    )
-
-    ax2.scatter(
-        x,
-        gpu_util_vals,
-        color="#F088A9",
-        s=80,
-        marker="o",
-        facecolors='white',
-        linewidths=2,
-        label=f'',
-        zorder=10,
-    )
+    # ---- Left subplot: normalized throughput (bars) ----
+    b1 = ax.bar(x - width / 2, sa_vals, width, color="#4E79A7", label="ADKV-SA", zorder=2)
+    b2 = ax.bar(x + width / 2, gpu_vals, width, color="#CEE1EF", label="ADKV-GPU", zorder=2)
 
     for bars, vals in [(b1, sa_vals), (b2, gpu_vals)]:
         for bar, v in zip(bars, vals):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height(),
-                    f"{v:.2f}",
-                    ha="center", va="bottom", fontsize=11, zorder=10)
-
-    for xi, v in zip(x, sa_util_vals):
-        ax2.text(xi - 0.05, v - 10.5, f"{v:.0f}%",
-                 ha="right", va="bottom", fontsize=11, color="#e61c5d")
-    for xi, v in zip(x, gpu_util_vals):
-        ax2.text(xi - 0.05, v + 3.5, f"{v:.0f}%",
-                 ha="left", va="bottom", fontsize=11, color="#F088A9")
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                    f"{v:.2f}", ha="center", va="bottom", fontsize=13, zorder=10, fontweight='bold')
 
     ax.set_xticks(x)
-    ax.set_xticklabels([f"{B}" for B in BATCHES], fontsize=11)
-    ax.set_xlabel("Batch Size", fontsize=11)
+    ax.set_xticklabels([f"{B}" for B in BATCHES], fontsize=13)
+    ax.set_xlabel("Batch Size", fontsize=13)
     ax.set_ylim(0, 25)
-    ax.tick_params(axis="y", labelsize=11)
-    ax.set_ylabel("Normalized Throughput (Tokens/s)", fontsize=11)
-    ax2.set_ylabel(
-        f"DRAM Bandwidth Util.",
-        fontsize=11,
-    )
-    ax2.set_ylim(0, 100)
+    ax.tick_params(axis="y", labelsize=13)
+    ax.set_ylabel("Normalized Throughput (Tokens/s)", fontsize=13)
     ax.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1), frameon=False,
+              fontsize=12, ncol=2)
 
-    handles = [b1, b2, l1, l2]
-    labels = [h.get_label() for h in handles]
-    ax.legend(handles, labels, loc='lower center', bbox_to_anchor=(0.5, 1), frameon=False, fontsize=11, ncol=4)
+    # ---- Right subplot: DRAM bandwidth utilization (lines) ----
+    l1, = ax2.plot(x, sa_util_vals, linewidth=2, color="#e61c5d",
+                   zorder=3, alpha=0.9, label="ADKV-SA")
+    l2, = ax2.plot(x, gpu_util_vals, linewidth=2, color="#F088A9",
+                   zorder=3, alpha=0.9, label="ADKV-GPU")
 
-    ax2.tick_params(axis="y", labelsize=11)
-    ax2.yaxis.set_major_formatter(
-        plt.FuncFormatter(lambda v, _p: f"{v:.0f}%"))
+    ax2.scatter(x, sa_util_vals, color="#e61c5d", s=80, marker="o",
+                facecolors="white", linewidths=2, zorder=10)
+    ax2.scatter(x, gpu_util_vals, color="#F088A9", s=80, marker="o",
+                facecolors="white", linewidths=2, zorder=10)
+
+    for xi, v in zip(x, sa_util_vals):
+        ax2.text(xi - 0.05, v + 3.5, f"{v:.0f}%", ha="right", va="bottom",
+                 fontsize=13, fontweight='bold', zorder=100)
+    for xi, v in zip(x, gpu_util_vals):
+        ax2.text(xi - 0.05, v + 3.5, f"{v:.0f}%", ha="right", va="bottom",
+                 fontsize=13, fontweight='bold', zorder=100)
+
+    ax2.set_xticks(x)
+    ax2.set_xticklabels([f"{B}" for B in BATCHES], fontsize=13)
+    ax2.set_xlabel("Batch Size", fontsize=13)
+    ax2.set_ylim(0, 100)
+    ax2.tick_params(axis="y", labelsize=13)
+    ax2.set_ylabel("DRAM Bandwidth Util.", fontsize=13)
+    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _p: f"{v:.0f}%"))
+    ax2.grid(True, axis="y", linewidth=0.3, alpha=0.4, zorder=0)
+    ax2.legend(loc="lower center", bbox_to_anchor=(0.5, 1), frameon=False,
+               fontsize=13, ncol=2)
 
     fig.tight_layout()
-    fig.savefig(outpath, dpi=180, bbox_inches="tight")
+    fig.savefig(outpath, dpi=180, bbox_inches="tight",pad_inches=0.5)
     print(f"saved {outpath}")
-
 
 # ---- main ---------------------------------------------------------------
 def main():
