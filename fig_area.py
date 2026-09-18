@@ -79,7 +79,7 @@ BATCH = 4
 HEAD = 32
 DIM = 128
 TOKEN_NUM = 2048
-BITS_LIST = [2, 4]
+BITS_LIST = [4, 2]
 
 # ---- hardware knobs ----
 FREQ_HZ = 1e9
@@ -310,7 +310,7 @@ def _plot_one(ax, cache, mem, bits, show_ylabel_left):
                         ha="center", va="bottom", fontsize=11, linespacing=1.1, fontweight="bold")
 
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=18)
+    ax.set_xticklabels(names, fontsize=18, rotation=45)
     ax.tick_params(axis="y", labelsize=18)
     if show_ylabel_left:
         ax.set_ylabel(f"Normalized Tokens/s/mm$^2$ - {mem.upper()}", fontsize=16)
